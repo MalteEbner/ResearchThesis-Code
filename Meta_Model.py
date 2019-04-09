@@ -32,12 +32,12 @@ class Activity_refinery(Activity):
         variants = [Variant(simulateFunction) for simulateFunction in simulateFunctions]
         Activity(predecessors,variants)
 
-class Supplier()
+class Supplier():
     def __init__(self,name,competences):
         self.name = name
         self.competences = competences
 
-class Compentence()
+class Compentence():
     def __init__(self,type,duration,cost,quality):
         self.type = type
         self.duration = duration
