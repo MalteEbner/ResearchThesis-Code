@@ -12,23 +12,24 @@ def loadSupplierData(filename='/Users/malteebner/Library/Mobile Documents/com~ap
 
     competenceTypes = []
     for competenceIndex in range(10):
-        columnLetter = round(4 + competenceIndex * 3)
-        type = sheet[int(columnLetter)][int(0)]
+        columnIndex = round(3 + competenceIndex * 3)
+        type = sheet[columnIndex][1].strip()
         competenceTypes.append(type)
 
     suppliers =[]
     for supplierIndex in range(11):
-        rowNumber = 2 + supplierIndex
-        supplierName = sheet[3][rowNumber]
+        rowNumber = 3 + supplierIndex
+        supplierName = sheet[2][rowNumber].strip()
         competences = []
         for competenceIndex in range(10):
-            columnLetter = 4 + competenceIndex * 3
-            duration = sheet[columnLetter][rowNumber]
-            if duration > 0: #only add competence if supplier has it
-                cost = sheet[columnLetter+1][rowNumber]
-                quality = sheet[columnLetter + 2][rowNumber]
-                competence = Meta_Model.Compentence(competenceTypes[competenceIndex],duration,cost,quality)
-                competences.append(competence)
+            columnIndex = 3 + competenceIndex * 3
+            durationEfficiency = sheet[columnIndex][rowNumber]
+            if durationEfficiency > 0: #only add competence if supplier has it
+                costEfficiency = sheet[columnIndex+1][rowNumber]
+                qualityEfficiency = sheet[columnIndex+ 2][rowNumber]
+                competence = Meta_Model.Compentence(durationEfficiency,costEfficiency,qualityEfficiency)
+                competences.append((competenceTypes[competenceIndex],competence))
+        competences = dict(competences)
         supplier = Meta_Model.Supplier(supplierName,competences)
         suppliers.append(supplier)
 
