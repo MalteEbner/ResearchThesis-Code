@@ -1,5 +1,4 @@
-import Refinery_Model_ProjectNetwork
-import Refinery_Model_suppliers
+from Model import Refinery_Model_suppliers, Refinery_Model_ProjectNetwork
 import numpy as np
 
 

@@ -1,5 +1,4 @@
-import Meta_Model
-
+from Model import Meta_Model
 
 '''
 load data from excel
@@ -27,10 +26,10 @@ def loadSupplierData(filename='/Users/malteebner/Library/Mobile Documents/com~ap
             if durationEfficiency > 0: #only add competence if supplier has it
                 costEfficiency = sheet[columnIndex+1][rowNumber]
                 qualityEfficiency = sheet[columnIndex+ 2][rowNumber]
-                competence = Meta_Model.Compentence(durationEfficiency,costEfficiency,qualityEfficiency)
+                competence = Meta_Model.Compentence(durationEfficiency, costEfficiency, qualityEfficiency)
                 competences.append((competenceTypes[competenceIndex],competence))
         competences = dict(competences)
-        supplier = Meta_Model.Supplier(supplierName,competences)
+        supplier = Meta_Model.Supplier(supplierName, competences)
         suppliers.append(supplier)
 
     return suppliers
