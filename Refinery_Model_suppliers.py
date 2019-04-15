@@ -36,5 +36,5 @@ def loadSupplierData(filename='/Users/malteebner/Library/Mobile Documents/com~ap
     return suppliers
 
 
-suppliers = loadSupplierData()
-print(suppliers)
+#suppliers = loadSupplierData()
+#print(suppliers)
