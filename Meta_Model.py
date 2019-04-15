@@ -31,10 +31,16 @@ class Activity_refinery(Activity):
         self.base_duration = base_duration
         self.base_cost_per_day = base_cost_per_day
         self.activity_ID = activity_ID
+        self.suppliers = suppliers
 
         simulateFunctions = [(lambda y: ( lambda: simulate_refinery(self, y)))(supplier) for supplier in suppliers]
         variants = [Variant(simulateFunction) for simulateFunction in simulateFunctions]
         super().__init__(predecessors,variants)
+
+    def __repr__(self):
+        firstLine = "name: " + self.name + ", type: " +  self.type + ", base duration: " + str(self.base_duration) + ", base cost per day: " +  str(self.base_cost_per_day) + ", ID: " + str(self.activity_ID) #+ ", supplier: " + self.suppliers[self.variantID]
+        secondLine = "duration: " + str(int(self.duration)) + ", cost: " +str(int(self.cost)) + ", quality: " + str(int(self.quality*100)) + "%, start: " + str(int(self.startpoint)) + ", end: " + str(self.endpoint)
+        return secondLine + "  " + firstLine
 
 
 class Supplier():
@@ -58,12 +64,20 @@ def simulate_refinery(activity_refinery,supplier):
     if len(activity_refinery.predecessors)>0:
         predecessorQualities = [pred.quality for pred in activity_refinery.predecessors]
         averagePredecessorQuality = np.mean(predecessorQualities)
+        predecessorEndpoints = [pred.endpoint for pred in activity_refinery.predecessors]
+        startpoint = np.max(predecessorEndpoints)
     else:
         averagePredecessorQuality = 1
+        startpoint = int(0)
     quality = 0.75 * competence.qualityEfficiency + 0.25 * averagePredecessorQuality
-    duration = np.ceil(activity_refinery.base_duration /(competence.durationEfficiency*quality**2))
-    cost = np.ceil(activity_refinery.base_cost_per_day* duration/competence.costEfficiency)
+    duration = int(np.ceil(activity_refinery.base_duration /(competence.durationEfficiency*quality**2)))
+    cost = int(np.ceil(activity_refinery.base_cost_per_day* duration/competence.costEfficiency**1))
+    endpoint = startpoint+duration
+    activity_refinery.duration = duration
+    activity_refinery.cost = cost
     activity_refinery.quality = quality
+    activity_refinery.startpoint = startpoint
+    activity_refinery.endpoint = endpoint
     return duration,cost,quality
 
 
