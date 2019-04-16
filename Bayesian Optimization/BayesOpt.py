@@ -1,5 +1,5 @@
 from hyperopt import fmin, tpe, rand, hp, STATUS_OK, Trials
-from Refinery_Model_definition import Model_Refinery
+from Refinery_Model import Model_Refinery
 import numpy as np
 
 def softmax(x):
@@ -47,7 +47,7 @@ def get_chosenVariantIndizes(chosenVariantIndizes_dict):
 do the optimization
 '''
 optFunction = lambda chosenVariantIndizes_dict: model.simulate_returnLoss(get_chosenVariantIndizes(chosenVariantIndizes_dict))
-best = fmin(optFunction,space_softmaxChoice,algo=rand.suggest,max_evals=200)
+best = fmin(optFunction,space_softmaxChoice,algo=rand.suggest,max_evals=20)
 
 print(model.simulate(get_chosenVariantIndizes(best)))
 

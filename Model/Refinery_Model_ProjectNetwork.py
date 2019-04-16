@@ -1,5 +1,4 @@
-from Model import Meta_Model
-
+from Model import Refinery_Model
 '''
 load data from excel
 '''
@@ -27,7 +26,7 @@ def loadActivityData(allSuppliers, filename='/Users/malteebner/Library/Mobile Do
             base_duration = sheet[6][activityIndex]
             base_cost_per_day = sheet[8][activityIndex]
             suppliers = [supplier for supplier in allSuppliers if supplier.hasCompetenceType(activityType)]
-            activity = Meta_Model.Activity_refinery(predecessorIndices, suppliers, activityType, base_duration, base_cost_per_day, name, activityNumber)
+            activity = Refinery_Model.Activity_refinery(predecessorIndices, suppliers, activityType, base_duration, base_cost_per_day, name, activityNumber)
             activities.append(activity)
 
     #replace predecessor indices by class instances
