@@ -1,14 +1,7 @@
 from hyperopt import fmin, tpe, rand, hp, STATUS_OK, Trials
 from Refinery_Model import Model_Refinery
 import numpy as np
-
-def softmax(x):
-    x = np.array(x)
-    y = np.exp(x)/sum(np.exp(x))
-    z = np.round(y*(2**10))
-    z = z/(2**10)
-    z[0] = 1-sum(z[1:])
-    return z
+from softmax import probsFromLosses
 
 model = Model_Refinery()
 
@@ -24,11 +17,10 @@ for act, noVariants in zip(model.activities,noActivityVariants):
     space_equalChoice[varName] = hp.choice(varName,range(0,noVariants))
 
 space_softmaxChoice = {}
-activityLosses = model.getActivityLosses(lambda tupl: tupl[0] * 3000 + tupl[1])
+activityLosses = model.getActivityLosses()
 for act, noVariants,variantLosses in zip(model.activities,noActivityVariants,activityLosses):
     varName = "act_ID_"+str(act.activity_ID)
-    variantProbabilities = softmax(np.array(variantLosses)/float(min(variantLosses))*-19)
-    sumProbs = sum(variantProbabilities)
+    variantProbabilities = probsFromLosses(variantLosses)
     choices = zip(variantProbabilities,range(0,noVariants))
     space_softmaxChoice[varName] = hp.pchoice(varName,choices)
 
@@ -47,9 +39,9 @@ def get_chosenVariantIndizes(chosenVariantIndizes_dict):
 do the optimization
 '''
 optFunction = lambda chosenVariantIndizes_dict: model.simulate_returnLoss(get_chosenVariantIndizes(chosenVariantIndizes_dict))
-best = fmin(optFunction,space_softmaxChoice,algo=rand.suggest,max_evals=20)
+best = fmin(optFunction,space_softmaxChoice,algo=tpe.suggest,max_evals=400)
 
-print(model.simulate(get_chosenVariantIndizes(best)))
+print("Best: " + str(model.simulate(get_chosenVariantIndizes(best))))
 
 best = model.getStartpoint()
-print(model.simulate(best))
+print("Default: " + str(model.simulate(best)))
