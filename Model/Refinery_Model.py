@@ -5,9 +5,10 @@ import numpy as np
 
 class Model_Refinery(MetaModel):
     def __init__(self):
-        self.suppliers = Refinery_Model_suppliers.loadSupplierData()
-        activities = Refinery_Model_ProjectNetwork.loadActivityData(self.suppliers)
-        defaultLossFunction = lambda tupl: tupl[0] * 6000 + tupl[1]
+        filename = '/Users/malteebner/Library/Mobile Documents/com~apple~CloudDocs/Master ETIT/10. Semester/Forschungsarbeit/Project management paper/Andre Heleno Project_management_business_game /SimGame translated - Andre Heleno.xlsx'
+        self.suppliers = Refinery_Model_suppliers.loadSupplierData(filename)
+        activities = Refinery_Model_ProjectNetwork.loadActivityData(self.suppliers,filename)
+        defaultLossFunction = lambda tupl: tupl[0]*tupl[1]
         super().__init__(activities,defaultLossFunction)
 
 

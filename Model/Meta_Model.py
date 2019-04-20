@@ -10,21 +10,24 @@ class MetaModel:
     def getVariantNumbers(self):
         return [len(act.variants) for act in self.activities]
 
-    def simulate(self, chosenVariantIndizes=[]):
+    def simulate(self, chosenVariantIndizes=[], lossFunction=[]):
         if chosenVariantIndizes == []:
             chosenVariantIndizes = [0 for i in range(len(self.activities))]
+        if lossFunction == []:
+            lossFunction = self.defaultLossFunction
         for activity, index in zip(self.activities, chosenVariantIndizes):
             activity.variants[index].simulate()
         self.totalDuration = max(act.endpoint for act in self.activities)
         self.totalCost = sum([act.cost for act in self.activities])
         self.averageQuality = sum(act.quality * act.base_duration for act in self.activities) / sum(
             act.base_duration for act in self.activities)
-        return self.totalDuration, self.totalCost, self.averageQuality
+        self.loss = lossFunction((self.totalDuration,self.totalCost,self.averageQuality))
+        return self.totalDuration, self.totalCost, self.averageQuality, self.loss
 
     def simulate_returnLoss(self, chosenVariantIndizes, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        loss = lossFunction(self.simulate(chosenVariantIndizes))
+        loss = self.simulate(chosenVariantIndizes,lossFunction)[3]
         return loss
 
     def getStartpoint(self, lossFunction=[]):
@@ -47,11 +50,6 @@ class MetaModel:
             variantLosses = [lossFunction(var.simulate()) for var in activity.variants]
             activityLosses.append(variantLosses)
         return activityLosses
-
-    def getOptFunction(self, lossFunction=[]):
-        if lossFunction == []:
-            lossFunction = self.defaultLossFunction
-        return lambda chosenVariantIndizes: lossFunction(self.simulate(chosenVariantIndizes))
 
     def __repr__(self):
         lines = ""

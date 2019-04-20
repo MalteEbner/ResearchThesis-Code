@@ -4,7 +4,7 @@ load data from excel
 '''
 import pandas as pd
 
-def loadActivityData(allSuppliers, filename='/Users/malteebner/Library/Mobile Documents/com~apple~CloudDocs/Master ETIT/10. Semester/Forschungsarbeit/Project management paper/SimGame translated - Andre Heleno.xlsx'):
+def loadActivityData(allSuppliers, filename):
     sheet = pd.read_excel(filename, sheet_name='Simulation')
 
     activities = []

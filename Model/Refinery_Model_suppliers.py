@@ -5,7 +5,7 @@ load data from excel
 '''
 import pandas as pd
 
-def loadSupplierData(filename='/Users/malteebner/Library/Mobile Documents/com~apple~CloudDocs/Master ETIT/10. Semester/Forschungsarbeit/Project management paper/SimGame translated - Andre Heleno.xlsx'):
+def loadSupplierData(filename):
     sheet = pd.read_excel(filename, sheet_name='Suppliers')
     #print(sheet)
 
