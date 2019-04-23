@@ -1,7 +1,6 @@
 import random
 import numpy as np
-from softmax import probsFromLosses
-from Refinery_Model import Model_Refinery
+from Meta_Model import commonFunctions
 
 class GeneticOpt():
 
@@ -53,7 +52,7 @@ class GeneticOpt():
 
 
     def selection(self,losses,matePoolSize=20,eliteSize=5):
-        probs = probsFromLosses(losses,1)
+        probs = commonFunctions.probsFromLosses(losses,1)
         matePopIndices = np.random.choice(range(len(probs)), matePoolSize, replace=False, p=probs)
         elitePopIndices = np.argpartition(probs, -1*eliteSize)[-1*eliteSize:]
         matePopIndices = set(matePopIndices)-set(elitePopIndices)
@@ -85,25 +84,3 @@ class GeneticOpt():
             losses = [self.lossFunction(chrom) for chrom in self.population]
         bestIndex = np.argmin(losses)
         return self.population[bestIndex]
-
-
-model = Model_Refinery()
-activityVariantNumbers = model.getVariantNumbers()
-genePool = GeneticOpt(activityVariantNumbers,model.simulate_returnLoss)
-startChromosome = model.getStartpoint()
-genePool.population.append(startChromosome)
-for i in range(100):
-    best = genePool.generateNewPop()
-    print(model.simulate(best))
-
-'''
-best = genePool.getBestPop()
-print(model.simulate(best))
-'''
-
-
-
-
-
-
-

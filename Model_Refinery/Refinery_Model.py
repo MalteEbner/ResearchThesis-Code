@@ -1,9 +1,9 @@
-from Model import Refinery_Model_suppliers, Refinery_Model_ProjectNetwork
-from Meta_Model import MetaModel,Activity,Variant
+from Model_Refinery import Refinery_Model_suppliers, Refinery_Model_ProjectNetwork
+from Meta_Model import Meta_Model
 import numpy as np
 
 
-class Model_Refinery(MetaModel):
+class Model_Refinery(Meta_Model.MetaModel):
     def __init__(self):
         filename = '/Users/malteebner/Library/Mobile Documents/com~apple~CloudDocs/Master ETIT/10. Semester/Forschungsarbeit/Project management paper/Andre Heleno Project_management_business_game /SimGame translated - Andre Heleno.xlsx'
         self.suppliers = Refinery_Model_suppliers.loadSupplierData(filename)
@@ -16,7 +16,7 @@ class Model_Refinery(MetaModel):
 Meta-Model for the refinery
 '''
 
-class Activity_refinery(Activity):
+class Activity_refinery(Meta_Model.Activity):
     def __init__(self,predecessors,suppliers,type,base_duration,base_cost_per_day,name,activity_ID):
 
         self.name = name
@@ -27,7 +27,7 @@ class Activity_refinery(Activity):
         self.suppliers = suppliers
 
         simulateFunctions = [(lambda y: ( lambda: simulate_refinery(self, y)))(supplier) for supplier in suppliers]
-        variants = [Variant(simulateFunction) for simulateFunction in simulateFunctions]
+        variants = [Meta_Model.Variant(simulateFunction) for simulateFunction in simulateFunctions]
         super().__init__(predecessors,variants)
 
     def __repr__(self):

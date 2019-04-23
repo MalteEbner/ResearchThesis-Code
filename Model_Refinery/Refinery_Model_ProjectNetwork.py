@@ -1,4 +1,4 @@
-from Model import Refinery_Model
+from Model_Refinery import Refinery_Model
 '''
 load data from excel
 '''
