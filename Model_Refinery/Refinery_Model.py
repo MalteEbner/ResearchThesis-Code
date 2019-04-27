@@ -9,7 +9,14 @@ class Model_Refinery(Meta_Model.MetaModel):
         self.suppliers = Refinery_Model_suppliers.loadSupplierData(filename)
         activities = Refinery_Model_ProjectNetwork.loadActivityData(self.suppliers,filename)
         defaultLossFunction = lambda tupl: tupl[0]*tupl[1]
-        super().__init__(activities,defaultLossFunction)
+        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction)
+
+    def calcPerformanceFunction(self,activities):
+        totalDuration = max(act.endpoint for act in activities)
+        totalCost = sum([act.cost for act in activities])
+        averageQuality = sum(act.quality * act.base_duration for act in activities) / sum(
+            act.base_duration for act in activities)
+        return (totalDuration,totalCost,averageQuality)
 
 
 '''

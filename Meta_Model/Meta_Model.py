@@ -3,9 +3,10 @@ import numpy as np
 
 class MetaModel:
 
-    def __init__(self, activities, defaultLossFunction):
+    def __init__(self, activities, defaultLossFunction,calcPerformanceFunction):
         self.activities = activities
         self.defaultLossFunction = defaultLossFunction
+        self.calcPerformanceFunction = calcPerformanceFunction
 
     def getVariantNumbers(self):
         return [len(act.variants) for act in self.activities]
@@ -17,17 +18,21 @@ class MetaModel:
             lossFunction = self.defaultLossFunction
         for activity, index in zip(self.activities, chosenVariantIndizes):
             activity.variants[index].simulate()
-        self.totalDuration = max(act.endpoint for act in self.activities)
-        self.totalCost = sum([act.cost for act in self.activities])
-        self.averageQuality = sum(act.quality * act.base_duration for act in self.activities) / sum(
-            act.base_duration for act in self.activities)
-        self.loss = lossFunction((self.totalDuration,self.totalCost,self.averageQuality))
-        return self.totalDuration, self.totalCost, self.averageQuality, self.loss
+        self.performance = self.calcPerformanceFunction(self.activities)
+        self.loss = lossFunction(self.performance)
+        retValue = (self.loss,) + self.performance
+        return retValue
+
+    def simulateMean(self,chosenVariantIndizes=[], lossFunction=[], randomTestsToMean=10):
+        noTests = int(randomTestsToMean)
+        performances = [self.simulate(chosenVariantIndizes,lossFunction) for i in range(randomTestsToMean)]
+        meanPerformance = np.mean(performances,axis=0)
+        return meanPerformance
 
     def simulate_returnLoss(self, chosenVariantIndizes, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        loss = self.simulate(chosenVariantIndizes,lossFunction)[3]
+        loss = self.simulate(chosenVariantIndizes,lossFunction)[0]
         return loss
 
     def getStartpoint(self, lossFunction=[]):
@@ -40,6 +45,9 @@ class MetaModel:
                 variantLosses)  # get the best Variant w.r.t to the loss assuming it is a single-activity-project
             activity.variants[bestVariant].simulate()  # assume all predecessors(and their quality) are optimal
             startIndizes.append(bestVariant)
+        return startIndizes
+    def getZeroStartpoint(self):
+        startIndizes = [int(0) for act in self.activities]
         return startIndizes
 
     def getActivityLosses(self, lossFunction=[]):
