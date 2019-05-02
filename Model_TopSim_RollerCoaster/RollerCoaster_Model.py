@@ -11,10 +11,11 @@ class Model_RollerCoaster(Meta_Model.MetaModel):
         activities = RollerCoaster_LoadSchedule.loadActivityData(filename)
         lossClass = RollerCoaster_LossFunction.RollerCoaster_Loss(filename)
         defaultLossFunction = lossClass.RollerCoaster_calcLoss
+        #defaultLossFunction = lambda tupl: tupl[0]
         super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction)
 
     def calcPerformanceFunction(self,activities):
-        totalDuration = max(act.endpoint for act in activities)
+        totalDuration = activities[-1].endpoint
         totalCost = sum([act.cost for act in activities])
         totalTechnology = sum([act.technology for act in activities])
         totalQuality = sum([act.quality for act in activities])
@@ -40,8 +41,7 @@ class VariantData_RollerCoaster():
 
 def simulate_RollerCoaster(activity,variantData):
     if len(activity.predecessors)>0:
-        predecessorEndpoints = [pred.endpoint for pred in activity.predecessors]
-        startpoint = np.max(predecessorEndpoints)
+        startpoint = max(pred.endpoint for pred in activity.predecessors)
     else:
         startpoint = int(0)
     duration = variantData.duration
