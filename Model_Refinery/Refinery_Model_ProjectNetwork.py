@@ -33,7 +33,7 @@ def loadActivityData(allSuppliers, filename):
     for activity in activities:
         activity.predecessors = [activities[ind] for ind in activity.predecessors]
 
-    #order activities such that each activity is after all precedessors
+    #order activities such that each activity is after all predecessors
     orderedActivities = []
     while len(orderedActivities)<len(activities):
         for activity in activities:
