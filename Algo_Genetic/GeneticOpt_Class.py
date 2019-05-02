@@ -10,7 +10,7 @@ class GeneticOpt():
         self.noActvities = len(activityVariantNumbers)
 
         if initialPop==[]:
-            initialPop = self.initialPopulation(300)
+            initialPop = self.initialPopulation(200)
         self.population = initialPop
 
         self.lossFunction = lossFunction
@@ -66,21 +66,25 @@ class GeneticOpt():
         childPop = elitePop[:]
         for elite in elitePop:
             mutated_elite = self.mutate(elite[:])
-            if not mutated_elite in childPop:
+            if True: #not mutated_elite in childPop:
                 childPop.append(mutated_elite)
-        while len(childPop) < len (self.population):
+        while len(childPop) < len(self.population):
             mateAindex = random.randrange(len(totalPop))
             mateBindex = random.randrange(len(totalPop))
             mateA = totalPop[mateAindex]
             mateB = totalPop[mateBindex]
             crossed_mate = self.cross(mateA[:],mateB[:])
             mutated_mate = self.mutate(crossed_mate[:])
-            if not mutated_mate in childPop:
+            if True:#not mutated_mate in childPop:
                 childPop.append(mutated_mate)
         return childPop
 
-    def getBestPop(self,losses=[]):
+    def getBestPop(self,losses=[],lossFunction=[]):
+        if lossFunction==[]:
+            lossFunction = self.lossFunction
         if losses==[]:
-            losses = [self.lossFunction(chrom) for chrom in self.population]
+            losses = [lossFunction(chrom) for chrom in self.population]
         bestIndex = np.argmin(losses)
         return self.population[bestIndex]
+
+

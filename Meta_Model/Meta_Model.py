@@ -11,9 +11,7 @@ class MetaModel:
     def getVariantNumbers(self):
         return [len(act.variants) for act in self.activities]
 
-    def simulate(self, chosenVariantIndizes=[], lossFunction=[]):
-        if chosenVariantIndizes == []:
-            chosenVariantIndizes = [0 for i in range(len(self.activities))]
+    def simulate(self, chosenVariantIndizes, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
         for activity, index in zip(self.activities, chosenVariantIndizes):
@@ -23,16 +21,23 @@ class MetaModel:
         retValue = (self.loss,) + self.performance
         return retValue
 
-    def simulateMean(self,chosenVariantIndizes=[], lossFunction=[], randomTestsToMean=10):
+    def simulateMean(self,chosenVariantIndizes, lossFunction=[], randomTestsToMean=[]):
+        if randomTestsToMean==[]:
+            randomTestsToMean=20
         noTests = int(randomTestsToMean)
         performances = [self.simulate(chosenVariantIndizes,lossFunction) for i in range(randomTestsToMean)]
         meanPerformance = np.mean(performances,axis=0)
+        meanPerformance = np.round(meanPerformance,2)
         return meanPerformance
 
     def simulate_returnLoss(self, chosenVariantIndizes, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
         loss = self.simulate(chosenVariantIndizes,lossFunction)[0]
+        return loss
+
+    def simulateMean_returnLoss(self,chosenVariantIndizes, lossFunction=[], randomTestsToMean=[]):
+        loss = self.simulateMean(chosenVariantIndizes,lossFunction,randomTestsToMean)[0]
         return loss
 
     def getStartpoint(self, lossFunction=[]):
@@ -46,6 +51,7 @@ class MetaModel:
             activity.variants[bestVariant].simulate()  # assume all predecessors(and their quality) are optimal
             startIndizes.append(bestVariant)
         return startIndizes
+
     def getZeroStartpoint(self):
         startIndizes = [int(0) for act in self.activities]
         return startIndizes

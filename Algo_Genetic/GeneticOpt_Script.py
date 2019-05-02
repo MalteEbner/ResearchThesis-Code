@@ -12,12 +12,12 @@ print(model.simulateMean(startChromosome))
 genePool.population.append(startChromosome)
 for i in range(100):
     best = genePool.generateNewPop()
-    print(model.simulateMean(best))
+    print(str(i) + ":  " + str(model.simulateMean(best)))
 
 
-best = genePool.getBestPop()
-print(best)
-print(model.simulateMean(best))
+best = genePool.getBestPop(model.simulateMean_returnLoss)
+print("best chromosome: " + str(best))
+print("performance of best: " + str(model.simulateMean(best)))
 print("Finished")
 
 
