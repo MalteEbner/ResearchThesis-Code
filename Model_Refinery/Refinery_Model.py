@@ -34,7 +34,7 @@ class Activity_refinery(Meta_Model.Activity):
         self.suppliers = suppliers
 
         simulateFunctions = [(lambda y: ( lambda: simulate_refinery(self, y)))(supplier) for supplier in suppliers]
-        variants = [Meta_Model.Variant(simulateFunction) for simulateFunction in simulateFunctions]
+        variants = [Meta_Model.Variant(self,simulateFunction) for simulateFunction in simulateFunctions]
         super().__init__(predecessors,variants)
 
     def __repr__(self):

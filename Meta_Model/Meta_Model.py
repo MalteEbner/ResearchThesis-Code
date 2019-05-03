@@ -109,10 +109,11 @@ class Activity():
 
 
 class Variant():
-    def __init__(self, simulate, simulateStepFunction=[]):
+    def __init__(self, activity, simulate, simulateStepFunction=[]):
         self.simulateStepFunction = simulateStepFunction
         self.simulate = simulate
         self.progress = 0
+        self.activity = activity
 
     def simulateStep(self,activity,model):
         if all(pred.finished for pred in self.activity.predecessors):

@@ -27,7 +27,7 @@ class Activity_RollerCoaster(Meta_Model.Activity):
         self.name = name
         self.predecessors =[]
         simulateFunctions = simulateFunctions = [(lambda y: ( lambda: simulate_RollerCoaster(self, y)))(variantData) for variantData in variantDataList]
-        variants = [Meta_Model.Variant(simulateFunction) for simulateFunction in simulateFunctions]
+        variants = [Meta_Model.Variant(self,simulateFunction) for simulateFunction in simulateFunctions]
         super().__init__([],variants)
 
 class VariantData_RollerCoaster():
