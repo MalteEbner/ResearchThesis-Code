@@ -1,9 +1,13 @@
 import numpy as np
 
+import copy
+
 
 class MetaModel:
 
-    def __init__(self, activities, defaultLossFunction,calcPerformanceFunction,events=[]):
+    def __init__(self, activities, defaultLossFunction,calcPerformanceFunction,events=[],setToDefault=[]):
+        if setToDefault ==[]:
+            setToDefault = lambda: 3
         self.activities = activities # activities are a list
         self.defaultLossFunction = defaultLossFunction
         self.calcPerformanceFunction = calcPerformanceFunction
@@ -50,18 +54,21 @@ class MetaModel:
 
         self.Time = 0
 
+        activities = copy.deepcopy(self.activities)
+        events = copy.deepcopy(self.events)
+
         #while last activity has not finished yet
-        while not self.activities[-1].finished:
+        while not activities[-1].finished:
 
             #do one step on all variants
-            for activity,chosenVariantIndex in zip(self.activities,chosenVariantIndizes):
+            for activity,chosenVariantIndex in zip(activities,chosenVariantIndizes):
                 if all(act.finished for act in activity.predecessors):
                     activity.variants[chosenVariantIndex].simulateStep(self)
 
 
             # run all occuring events
-            for eventID in self.events.keys():
-                event = self.events[eventID]
+            for eventID in events.keys():
+                event = events[eventID]
                 eventOptionIndex = chosenEventOptionIndizes[eventID]
                 event.runEvent(self,eventOptionIndex)
 
@@ -72,6 +79,7 @@ class MetaModel:
         self.performance = self.calcPerformanceFunction(self.activities)
         self.loss = lossFunction(self.performance)
         retValue = (self.loss,) + self.performance
+        self.setToDefault()
         return retValue
 
 
@@ -162,10 +170,10 @@ class Event():
     def runEvent(self,meta_model,eventOptionIndex):
         if self.allowRun and self.occurCondition(meta_model):
             self.eventOptions[eventOptionIndex].RunEventOption(meta_model)
-            print("")
-            print("time: "+ str(meta_model.Time))
-            print("ran event "+ str(self.eventID) + ": " + self.description)
-            print("chose option " + str(eventOptionIndex+1) + ": " + self.eventOptions[eventOptionIndex].description)
+            #print("")
+            #print("time: "+ str(meta_model.Time))
+            #print("ran event "+ str(self.eventID) + ": " + self.description)
+            #print("chose option " + str(eventOptionIndex+1) + ": " + self.eventOptions[eventOptionIndex].description)
 
 
             #only allow running it once if necessary

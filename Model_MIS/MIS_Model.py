@@ -10,8 +10,26 @@ class Model_MIS(Meta_Model.MetaModel):
     def __init__(self):
         filename = '../Model_MIS/MIS_PM.xlsx'
         activities, events = MIS_LoadData.loadData(filename)
-        defaultLossFunction = lambda tupl: -1*sum(tupl)
+        #defaultLossFunction = lambda tupl: -1.*sum(tupl)/len(tupl)
+        defaultLossFunction = lambda tupl: -1* tupl[3]
 
+        self.setToDefault()
+
+        self.simulate = self.simulateStepwise_withEvents #the normal simulation is here the one with events
+
+
+
+
+        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,events,self.setToDefault)
+
+    def calcPerformanceFunction(self,activities=[]):
+        if activities == []:
+            activities = self.activities
+        #totalDuration = self.Time
+        #totalCost = sum([act.variants[0].cost for act in activities])+self.projectCost
+        return (self.ScoreCost,self.ScoreTime,self.ScoreQuality,self.ScoreAcceptance,self.ScoreMorale,self.ScoreSecurity)
+
+    def setToDefault(self):
         self.ScoreCost = 53
         self.ScoreTime = 59
         self.ScoreQuality = 50
@@ -22,18 +40,6 @@ class Model_MIS(Meta_Model.MetaModel):
         self.boughtResources = []
         self.projectCost = 0
         self.budget = int(1.1 * pow(10,6))
-
-
-
-
-        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,events)
-
-    def calcPerformanceFunction(self,activities=[]):
-        if activities == []:
-            activities = self.activities
-        #totalDuration = self.Time
-        #totalCost = sum([act.variants[0].cost for act in activities])+self.projectCost
-        return (self.ScoreCost,self.ScoreTime,self.ScoreQuality,self.ScoreAcceptance,self.ScoreMorale,self.ScoreSecurity)
 
     def TaskTime(self,index):
         variant = self.activities[index-1].variants[0]
@@ -55,12 +61,14 @@ class Model_MIS(Meta_Model.MetaModel):
         return random.randrange(0,100)
 
 
+
+
     def action_Event(self,eventID):
         event = self.events[eventID]
         event.isActivated = True
         scheduledTime = self.Time + event.TimeLag
         timeCondition = lambda model: model.Time == scheduledTime
-        print("scheduled event " + str(eventID) + " to happen on " + str(scheduledTime))
+        #print("scheduled event " + str(eventID) + " to happen on " + str(scheduledTime))
         event.occurConditions_basic.append(timeCondition)
 
     def action_ProjectDelay(self,noDays):
@@ -124,7 +132,7 @@ class Variant_MIS(Meta_Model.Variant):
         super().__init__(self.simulate,self.simulateStepFunction)
 
     def simulate(self):
-        return [0] #for calculating Startpoints
+        return [0,0,0,0,0,0] #for calculating Startpoints
 
 
     def simulateStepFunction(self,model):
