@@ -53,11 +53,14 @@ class MIS_conditionStringsToLambdas():
         valueString = conditionPartStrings[3]
         value = int(valueString)
         index = int(indexString)
-        dict = {}
-        dict['>'] = lambda model: getattr(model,attributeString)(index) > value
-        dict['='] = lambda model: getattr(model,attributeString)(index) == value
-        dict['<'] = lambda model: getattr(model,attributeString)(index) < value
-        return dict[comparisonString]
+        if attributeString == 'TaskState':
+            pass #ignore TaskState condition / treat it as non-existent
+        else:
+            dict = {}
+            dict['>'] = lambda model: getattr(model,attributeString)(index) > value
+            dict['='] = lambda model: getattr(model,attributeString)(index) == value
+            dict['<'] = lambda model: getattr(model,attributeString)(index) < value
+            return dict[comparisonString]
 
 
 class Event_MIS(Meta_Model.Event):
