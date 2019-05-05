@@ -4,13 +4,15 @@ import numpy as np
 class MetaModel:
 
     def __init__(self, activities, defaultLossFunction,calcPerformanceFunction,events=[]):
-        self.activities = activities
+        self.activities = activities # activities are a list
         self.defaultLossFunction = defaultLossFunction
         self.calcPerformanceFunction = calcPerformanceFunction
-        self.events = events
+        self.events = events #events are a dictionary with eventID as key
 
     def getVariantNumbers(self):
-        return [len(act.variants) for act in self.activities]
+        variantNumsActivities = [len(act.variants) for act in self.activities]
+        variantNumsEvents = [len(self.events[eventID].eventOptions) for eventID in self.orderedEventIDs()]
+        return variantNumsActivities + variantNumsEvents
 
     def simulate(self, chosenVariantIndizes, lossFunction=[]):
         if lossFunction == []:
@@ -23,27 +25,49 @@ class MetaModel:
         retValue = (self.loss,) + self.performance
         return retValue
 
+    def orderedEventIDs(self):
+        if self.events ==[]:
+            return []
+        eventIDs = list(self.events.keys())
+        eventIDs.sort()
+        return eventIDs
+
+    def chosenVariantIndizes_activititesEvents_to_seperateOnes(self,chosenVariantIndizes_activitiesEvents):
+        noActivities = len(self.activities)
+        chosenActivityVariantIndizes = chosenVariantIndizes_activitiesEvents[:noActivities]
+        chosenEventOptionIndizes_List = chosenVariantIndizes_activitiesEvents[noActivities:]
+        eventIDs = self.orderedEventIDs()
+        chosenEventOptionIndizes = dict(zip(eventIDs,chosenEventOptionIndizes_List))
+        return chosenActivityVariantIndizes,chosenEventOptionIndizes
 
 
-    def simulateStepwise_withEvents(self,chosenVariantIndizes,chosenEventOptionIndizes,lossFunction=[]):
+
+    def simulateStepwise_withEvents(self,chosenVariantIndizes_activitiesEvents,lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        self.time = 0
+
+        chosenVariantIndizes, chosenEventOptionIndizes = self.chosenVariantIndizes_activititesEvents_to_seperateOnes(chosenVariantIndizes_activitiesEvents)
+
+        self.Time = 0
 
         #while last activity has not finished yet
-        while self.activities[-1].finished == False:
+        while not self.activities[-1].finished:
 
             #do one step on all variants
             for activity,chosenVariantIndex in zip(self.activities,chosenVariantIndizes):
-                activity.variants[chosenVariantIndex].simulateStep(self,activity)
+                if all(act.finished for act in activity.predecessors):
+                    activity.variants[chosenVariantIndex].simulateStep(self)
 
 
             # run all occuring events
-            for event,eventOptionIndex in zip(self.events,chosenEventOptionIndizes):
+            for eventID in self.events.keys():
+                event = self.events[eventID]
+                eventOptionIndex = chosenEventOptionIndizes[eventID]
                 event.runEvent(self,eventOptionIndex)
 
             #increase time
-            self.time += 1
+            self.Time += 1
+            #print(self.Time)
 
         self.performance = self.calcPerformanceFunction(self.activities)
         self.loss = lossFunction(self.performance)
@@ -73,27 +97,34 @@ class MetaModel:
     def getStartpoint(self, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        startIndizes = []
+        startIndizes_activities = []
         for activity in self.activities:
             variantLosses = [lossFunction(var.simulate()) for var in activity.variants]
             bestVariant = np.argmin(
                 variantLosses)  # get the best Variant w.r.t to the loss assuming it is a single-activity-project
             activity.variants[bestVariant].simulate()  # assume all predecessors(and their quality) are optimal
-            startIndizes.append(bestVariant)
-        return startIndizes
+            startIndizes_activities.append(bestVariant)
+        return startIndizes_activities + self.getZeroStartpoint_events()
 
     def getZeroStartpoint(self):
-        startIndizes = [int(0) for act in self.activities]
+        startIndizes_activities = [int(0) for act in self.activities]
+        return startIndizes_activities + self.getZeroStartpoint_events()
+
+    def getZeroStartpoint_events(self):
+        startIndizes = [0 for i in self.events]
         return startIndizes
 
     def getActivityLosses(self, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        activityLosses = []
+        losses = []
         for activity in self.activities:
             variantLosses = [lossFunction(var.simulate()) for var in activity.variants]
-            activityLosses.append(variantLosses)
-        return activityLosses
+            losses.append(variantLosses)
+        for eventID in self.orderedEventIDs():
+            optionsLosses = [0 for y in self.events[eventID].eventOptions]
+            losses.append(optionsLosses)
+        return losses
 
     def __repr__(self):
         lines = ""
@@ -102,39 +133,49 @@ class MetaModel:
         return lines
 
 class Activity():
-    def __init__(self, predecessors, variants):
+    def __init__(self, predecessors, variants, activityID):
         self.predecessors = predecessors
         self.variants = variants
-
-
+        self.activityID = activityID
+        self.finished = False
+        for var in variants:
+            var.activity = self
 
 class Variant():
-    def __init__(self, activity, simulate, simulateStepFunction=[]):
+    def __init__(self, simulate, simulateStepFunction=[]):
         self.simulateStepFunction = simulateStepFunction
         self.simulate = simulate
-        self.progress = 0
-        self.activity = activity
 
-    def simulateStep(self,activity,model):
+    def simulateStep(self,model):
         if all(pred.finished for pred in self.activity.predecessors):
-            self.progress = self.simulateStepFunction(model,self.progress)
-            if self.progress >= 1:
+            self.relProgress = self.simulateStepFunction(model)
+            if self.relProgress >= 1:
                 self.activity.finished = True
 
 class Event():
-    def __init__(self, occurCondition, RunFunction, onlyOnce=True):
+    def __init__(self, occurCondition, eventOptions, onlyOnce=True):
         self.allowRun = True
         self.onlyOnce = onlyOnce
         self.occurCondition = occurCondition
-        self.RunFunction = RunFunction
+        self.eventOptions = eventOptions
 
-    def runEvent(self,meta_model,optionIndex):
+    def runEvent(self,meta_model,eventOptionIndex):
         if self.allowRun and self.occurCondition(meta_model):
-            self.RunFunction(meta_model,optionIndex)
+            self.eventOptions[eventOptionIndex].RunEventOption(meta_model)
+            print("")
+            print("time: "+ str(meta_model.Time))
+            print("ran event "+ str(self.eventID) + ": " + self.description)
+            print("chose option " + str(eventOptionIndex+1) + ": " + self.eventOptions[eventOptionIndex].description)
+
 
             #only allow running it once if necessary
             if self.onlyOnce==True:
                 self.allowRun = False
+
+class EventOption():
+    def __init__(self,runFunction):
+        self.RunEventOption = runFunction
+
 
 
 

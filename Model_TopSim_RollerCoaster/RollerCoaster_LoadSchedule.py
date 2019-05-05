@@ -34,8 +34,7 @@ def loadActivityData(filename):
                     risk = sheet[durationColumn+4][activityIndex]
                     variantData = RollerCoaster_Model.VariantData_RollerCoaster(duration,cost,technology,quality,risk)
                     variantDataList.append(variantData)
-            activity = RollerCoaster_Model.Activity_RollerCoaster(variantDataList,name)
-            activity.activity_ID = activityNumber
+            activity = RollerCoaster_Model.Activity_RollerCoaster(variantDataList,name,activityNumber)
             activities.append(activity)
 
     #write down predecessors

@@ -30,12 +30,11 @@ class Activity_refinery(Meta_Model.Activity):
         self.type = type
         self.base_duration = base_duration
         self.base_cost_per_day = base_cost_per_day
-        self.activity_ID = activity_ID
         self.suppliers = suppliers
 
         simulateFunctions = [(lambda y: ( lambda: simulate_refinery(self, y)))(supplier) for supplier in suppliers]
-        variants = [Meta_Model.Variant(self,simulateFunction) for simulateFunction in simulateFunctions]
-        super().__init__(predecessors,variants)
+        variants = [Meta_Model.Variant(simulateFunction) for simulateFunction in simulateFunctions]
+        super().__init__(predecessors,variants,activity_ID)
 
     def __repr__(self):
         firstLine = "name: " + self.name + ", type: " +  self.type + ", base duration: " + str(self.base_duration) + ", base cost per day: " +  str(self.base_cost_per_day) + ", ID: " + str(self.activity_ID) #+ ", supplier: " + self.suppliers[self.variantID]

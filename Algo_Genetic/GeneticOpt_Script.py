@@ -1,9 +1,12 @@
-from Model_Refinery import Refinery_Model
 from Algo_Genetic import GeneticOpt_Class
+
+from Model_Refinery import Refinery_Model
 from Model_TopSim_RollerCoaster import RollerCoaster_Model
+from Model_MIS import MIS_Model
 
 model = RollerCoaster_Model.Model_RollerCoaster()
 #model = Refinery_Model.Model_Refinery()
+#model = MIS_Model.Model_MIS()
 
 activityVariantNumbers = model.getVariantNumbers()
 genePool = GeneticOpt_Class.GeneticOpt(activityVariantNumbers,model.simulate_returnLoss)

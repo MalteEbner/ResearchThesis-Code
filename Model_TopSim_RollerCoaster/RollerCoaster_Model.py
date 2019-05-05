@@ -22,13 +22,13 @@ class Model_RollerCoaster(Meta_Model.MetaModel):
         return (totalDuration,totalCost,totalTechnology,totalQuality)
 
 class Activity_RollerCoaster(Meta_Model.Activity):
-    def __init__(self,variantDataList,name):
+    def __init__(self,variantDataList,name,activityID):
 
         self.name = name
         self.predecessors =[]
         simulateFunctions = simulateFunctions = [(lambda y: ( lambda: simulate_RollerCoaster(self, y)))(variantData) for variantData in variantDataList]
-        variants = [Meta_Model.Variant(self,simulateFunction) for simulateFunction in simulateFunctions]
-        super().__init__([],variants)
+        variants = [Meta_Model.Variant(simulateFunction) for simulateFunction in simulateFunctions]
+        super().__init__([],variants,activityID)
 
 class VariantData_RollerCoaster():
     def __init__(self,duration,cost,technology,quality,risk):
