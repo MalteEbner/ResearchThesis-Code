@@ -4,14 +4,12 @@ from Meta_Model import commonFunctions
 
 class GeneticOpt():
 
-    def __init__(self,activityVariantNumbers,lossFunction,initialPop=[]):
+    def __init__(self,activityVariantNumbers,lossFunction,initialPopSize=200):
 
         self.activityVariantNumbers = activityVariantNumbers
         self.noActvities = len(activityVariantNumbers)
 
-        if initialPop==[]:
-            initialPop = self.initialPopulation(200)
-        self.population = initialPop
+        self.population = self.initialPopulation(initialPopSize)
 
         self.lossFunction = lossFunction
 
