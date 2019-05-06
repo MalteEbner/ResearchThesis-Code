@@ -10,17 +10,18 @@ class Model_MIS(Meta_Model.MetaModel):
     def __init__(self):
         filename = '../Model_MIS/MIS_PM.xlsx'
         activities, events = MIS_LoadData.loadData(filename)
-        #defaultLossFunction = lambda tupl: -1.*sum(tupl)/len(tupl)
-        defaultLossFunction = lambda tupl: -1* tupl[3]
+        defaultLossFunction = lambda tupl: -1.*sum(tupl)/len(tupl)
+        #defaultLossFunction = lambda tupl: 100-1* tupl[5]
 
-        self.setToDefault()
+
 
         self.simulate = self.simulateStepwise_withEvents #the normal simulation is here the one with events
 
 
 
 
-        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,events,self.setToDefault)
+        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,events)
+        self.resetFunction()
 
     def calcPerformanceFunction(self,activities=[]):
         if activities == []:
@@ -29,7 +30,7 @@ class Model_MIS(Meta_Model.MetaModel):
         #totalCost = sum([act.variants[0].cost for act in activities])+self.projectCost
         return (self.ScoreCost,self.ScoreTime,self.ScoreQuality,self.ScoreAcceptance,self.ScoreMorale,self.ScoreSecurity)
 
-    def setToDefault(self):
+    def resetFunction(self):
         self.ScoreCost = 53
         self.ScoreTime = 59
         self.ScoreQuality = 50
@@ -40,6 +41,11 @@ class Model_MIS(Meta_Model.MetaModel):
         self.boughtResources = []
         self.projectCost = 0
         self.budget = int(1.1 * pow(10,6))
+
+        for act in self.activities:
+            act.resetFunction()
+        for event in self.events.values():
+            event.resetFunction()
 
     def TaskTime(self,index):
         variant = self.activities[index-1].variants[0]
@@ -130,6 +136,13 @@ class Variant_MIS(Meta_Model.Variant):
         self.progress = 0
 
         super().__init__(self.simulate,self.simulateStepFunction)
+
+    def resetFunction(self):
+        self.duration = self.base_duration
+        self.cost = self.base_cost
+        self.quality = 0
+        self.progress = 0
+        super().resetFunction()
 
     def simulate(self):
         return [0,0,0,0,0,0] #for calculating Startpoints

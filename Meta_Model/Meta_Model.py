@@ -5,9 +5,7 @@ import copy
 
 class MetaModel:
 
-    def __init__(self, activities, defaultLossFunction,calcPerformanceFunction,events=[],setToDefault=[]):
-        if setToDefault ==[]:
-            setToDefault = lambda: 3
+    def __init__(self, activities, defaultLossFunction,calcPerformanceFunction,events=[]):
         self.activities = activities # activities are a list
         self.defaultLossFunction = defaultLossFunction
         self.calcPerformanceFunction = calcPerformanceFunction
@@ -54,8 +52,10 @@ class MetaModel:
 
         self.Time = 0
 
-        activities = copy.deepcopy(self.activities)
-        events = copy.deepcopy(self.events)
+        #activities = copy.deepcopy(self.activities)
+        #events = copy.deepcopy(self.events)
+        activities = self.activities
+        events = self.events
 
         #while last activity has not finished yet
         while not activities[-1].finished:
@@ -76,11 +76,15 @@ class MetaModel:
             self.Time += 1
             #print(self.Time)
 
-        self.performance = self.calcPerformanceFunction(self.activities)
+        self.performance = self.calcPerformanceFunction(activities)
         self.loss = lossFunction(self.performance)
         retValue = (self.loss,) + self.performance
-        self.setToDefault()
+        self.resetFunction()
         return retValue
+
+    def resetFunction(self):
+        pass
+
 
 
     def simulateMean(self,chosenVariantIndizes, lossFunction=[], randomTestsToMean=[]):
@@ -149,6 +153,12 @@ class Activity():
         for var in variants:
             var.activity = self
 
+    def resetFunction(self):
+        self.finished = False
+        for var in self.variants:
+            var.resetFunction()
+
+
 class Variant():
     def __init__(self, simulate, simulateStepFunction=[]):
         self.simulateStepFunction = simulateStepFunction
@@ -156,9 +166,12 @@ class Variant():
 
     def simulateStep(self,model):
         if all(pred.finished for pred in self.activity.predecessors):
-            self.relProgress = self.simulateStepFunction(model)
-            if self.relProgress >= 1:
+            relProgress = self.simulateStepFunction(model)
+            if relProgress >= 1:
                 self.activity.finished = True
+
+    def resetFunction(self):
+        pass
 
 class Event():
     def __init__(self, occurCondition, eventOptions, onlyOnce=True):
@@ -180,9 +193,17 @@ class Event():
             if self.onlyOnce==True:
                 self.allowRun = False
 
+    def resetFunction(self):
+        self.allowRun = True
+        for eventOption in self.eventOptions:
+            eventOption.resetFunction()
+
 class EventOption():
     def __init__(self,runFunction):
         self.RunEventOption = runFunction
+
+    def resetFunction(self):
+        pass
 
 
 

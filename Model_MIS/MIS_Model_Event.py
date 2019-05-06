@@ -67,9 +67,9 @@ class Event_MIS(Meta_Model.Event):
     def __init__(self,eventID,conditionString,description):
         self.eventID = eventID
         self.description = description
-        self.variantStrings = []
         self.isActivated = False
         self.TimeLag = 0
+        self.conditionString = conditionString
 
         self.occurConditions_basic = MIS_conditionStringsToLambdas.conditionString_to_conditionFunction(conditionString,self)
 
@@ -84,6 +84,12 @@ class Event_MIS(Meta_Model.Event):
                 print(type(lambda model: True))
             canOccur = all(condition(model) for condition in self.occurConditions_basic)
             return canOccur
+
+    def resetFunction(self):
+        self.isActivated = False
+        self.TimeLag = 0
+        self.occurConditions_basic = MIS_conditionStringsToLambdas.conditionString_to_conditionFunction(self.conditionString,self)
+        super().resetFunction()
 
 
 
@@ -142,10 +148,6 @@ class EventOption_MIS(Meta_Model.EventOption):
         actionFunction = lambda model: getattr(model,actionFunctionName)(arg1,arg2)
         return actionFunction
 
+    def resetFunction(self):
+        super().resetFunction()
 
-
-
-
-class ConditionStringToFun():
-    def __init__(self):
-        i=0
