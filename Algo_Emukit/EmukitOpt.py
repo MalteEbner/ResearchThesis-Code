@@ -34,28 +34,25 @@ space = ParameterSpace(parameterList)
 
 
 
-def encodingToInteger(rows, encodingList):
-    integerMatrix = []
-    for inputPoint in rows:
-        index = 0
-        integers = []
-        for encoding in encodingList:
-            size = encoding.dimension
-            oneHotVector = inputPoint[index:index+size]
-            index+=size
-            integ = encoding.get_category(oneHotVector)
-            integers.append(integ)
-        integerMatrix.append(integers)
-    return integerMatrix
+def encodingToInteger(row, encodingList):
+    index = 0
+    integers = []
+    for encoding in encodingList:
+        size = encoding.dimension
+        oneHotVector = row[index:index+size]
+        index+=size
+        integ = encoding.get_category(oneHotVector)
+        integers.append(integ)
+    return integers
 
 '''define objective function for emukit'''
 def emukit_friendly_objective_function(input_rows):
-    #chosenOptionIndizes = [encodingToInteger(row) for row in input_rows]
-    chosenOptionMatrix = encodingToInteger(input_rows,encodingList)
     losses = []
-    for chosenOptionIndizes in chosenOptionMatrix:
-        loss = model.simulate(chosenOptionIndizes)
-        losses.append(loss)
+    for row in input_rows:
+        chosenOptionIndizes = encodingToInteger(row, encodingList)
+        loss = model.simulate_returnLoss(chosenOptionIndizes)
+        print('loss: ' + str(loss))
+        losses.append([loss])
     return np.array(losses)
 
 '''use random forests as model'''
@@ -63,13 +60,21 @@ from emukit.examples.models.random_forest import RandomForest
 from emukit.experimental_design import RandomDesign
 
 random_design = RandomDesign(space)
-initial_points_count = 5
+initial_points_count = 3
 X_init = random_design.get_samples(initial_points_count)
 Y_init = emukit_friendly_objective_function(X_init)
 
 rf_model = RandomForest(X_init, Y_init)
 
 '''start finding optimimum'''
-loop = BayesianOptimizationLoop(rf_model, space)
+loop = BayesianOptimizationLoop(space,rf_model)
 loop.run_loop(emukit_friendly_objective_function, 10)
 
+'''get results'''
+bestIteration = np.argmin(loop.loop_state.Y)
+bestPointEncoded = loop.loop_state.X[bestIteration]
+bestPoint = encodingToInteger(bestPointEncoded,encodingList)
+bestLoss = loop.loop_state.Y[bestIteration]
+print('best: loss: ' + str(bestLoss) + ' point: ' + str(bestPoint))
+
+print("end of optimization")
