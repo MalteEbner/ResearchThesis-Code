@@ -23,23 +23,40 @@ from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 '''define parameter space'''
 noActivityVariants = model.getVariantNumbers()
 parameterList = []
+encodingList = []
 for index,varNumber in enumerate(noActivityVariants):
     options = range(varNumber)
     encoding = OneHotEncoding(options)
+    encodingList.append(encoding)
     categoricalParam = CategoricalParameter('paramName_'+str(index),encoding)
     parameterList.append(categoricalParam)
 space = ParameterSpace(parameterList)
 
-def encodingToInteger(rows):
-    integs = [np.where(row[1:]==1)[0][0] for row in rows]
-    return integs
+
+
+def encodingToInteger(rows, encodingList):
+    integerMatrix = []
+    for inputPoint in rows:
+        index = 0
+        integers = []
+        for encoding in encodingList:
+            size = encoding.dimension
+            oneHotVector = inputPoint[index:index+size]
+            index+=size
+            integ = encoding.get_category(oneHotVector)
+            integers.append(integ)
+        integerMatrix.append(integers)
+    return integerMatrix
 
 '''define objective function for emukit'''
 def emukit_friendly_objective_function(input_rows):
     #chosenOptionIndizes = [encodingToInteger(row) for row in input_rows]
-    chosenOptionIndizes = encodingToInteger(input_rows)
-    loss = model.simulate(chosenOptionIndizes)
-    return np.array(loss)
+    chosenOptionMatrix = encodingToInteger(input_rows,encodingList)
+    losses = []
+    for chosenOptionIndizes in chosenOptionMatrix:
+        loss = model.simulate(chosenOptionIndizes)
+        losses.append(loss)
+    return np.array(losses)
 
 '''use random forests as model'''
 from emukit.examples.models.random_forest import RandomForest
