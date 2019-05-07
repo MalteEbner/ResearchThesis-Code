@@ -10,6 +10,7 @@ class MetaModel:
         self.defaultLossFunction = defaultLossFunction
         self.calcPerformanceFunction = calcPerformanceFunction
         self.events = events #events are a dictionary with eventID as key
+        self.noEventsPlayed = 0
 
     def getVariantNumbers(self):
         variantNumsActivities = [len(act.variants) for act in self.activities]
@@ -51,6 +52,8 @@ class MetaModel:
         chosenVariantIndizes, chosenEventOptionIndizes = self.chosenVariantIndizes_activititesEvents_to_seperateOnes(chosenVariantIndizes_activitiesEvents)
 
         self.Time = 0
+        self.TimeDelay = 0
+        self.noEventsPlayed = 0
 
         #activities = copy.deepcopy(self.activities)
         #events = copy.deepcopy(self.events)
@@ -60,10 +63,13 @@ class MetaModel:
         #while last activity has not finished yet
         while not activities[-1].finished:
 
-            #do one step on all variants
-            for activity,chosenVariantIndex in zip(activities,chosenVariantIndizes):
-                if all(act.finished for act in activity.predecessors):
-                    activity.variants[chosenVariantIndex].simulateStep(self)
+            if self.TimeDelay == 0:
+                #do one step on all variants
+                for activity,chosenVariantIndex in zip(activities,chosenVariantIndizes):
+                    if all(act.finished for act in activity.predecessors):
+                        activity.variants[chosenVariantIndex].simulateStep(self)
+            else:
+                self.TimeDelay -=1
 
 
             # run all occuring events
@@ -187,6 +193,7 @@ class Event():
             #print("time: "+ str(meta_model.Time))
             #print("ran event "+ str(self.eventID) + ": " + self.description)
             #print("chose option " + str(eventOptionIndex+1) + ": " + self.eventOptions[eventOptionIndex].description)
+            meta_model.noEventsPlayed +=1
 
 
             #only allow running it once if necessary

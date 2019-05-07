@@ -13,7 +13,7 @@ class MIS_conditionStringsToLambdas():
         allRegex = '|'.join(allRegex)
         foundStrings = re.findall(allRegex,conditionString)
         simpleConditions = [MIS_conditionStringsToLambdas.getConditionFun(string[0],optionalEvent) for string in foundStrings if len(string[0])>0]
-        bracketConditions = [MIS_conditionStringsToLambdas.getConditionFun_bracket(string[1]) for string in foundStrings if len(string[1])>0]
+        bracketConditions = [MIS_conditionStringsToLambdas.getConditionFun_bracket(string[1],optionalEvent) for string in foundStrings if len(string[1])>0]
         occurConditions_basic = simpleConditions + bracketConditions
         occurConditions_basic = [cond for cond in occurConditions_basic if type(cond) == type(lambda model: 'example')]
         return occurConditions_basic
@@ -30,7 +30,7 @@ class MIS_conditionStringsToLambdas():
         if attributeString == 'TimeLag':
             optionalEventObject.TimeLag = value
         elif attributeString == 'Random':
-            cond = lambda model: model.RandomPercent < value #random is always with '<'
+            cond = lambda model: model.RandomPercent(model) < value #random is always with '<'
             return cond
         else:
             if attributeString == 'Time' or attributeString == 'TimeLag':
@@ -44,7 +44,7 @@ class MIS_conditionStringsToLambdas():
 
 
     @staticmethod
-    def getConditionFun_bracket(bracketConditionString):
+    def getConditionFun_bracket(bracketConditionString,optionalEventObject=[]):
         regex = r'(\w+)\((\d+)\)([>=<])(\d+)'
         conditionPartStrings = re.findall(regex,bracketConditionString)[0]
         attributeString = conditionPartStrings[0]
@@ -56,6 +56,8 @@ class MIS_conditionStringsToLambdas():
         if attributeString == 'TaskState':
             pass #ignore TaskState condition / treat it as non-existent
         else:
+            if attributeString == 'TaskTime':
+                optionalEventObject.isActivated = True
             dict = {}
             dict['>'] = lambda model: getattr(model,attributeString)(index) > value
             dict['='] = lambda model: getattr(model,attributeString)(index) == value

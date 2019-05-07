@@ -10,7 +10,7 @@ class Model_MIS(Meta_Model.MetaModel):
     def __init__(self):
         filename = '../Model_MIS/MIS_PM.xlsx'
         activities, events = MIS_LoadData.loadData(filename)
-        defaultLossFunction = lambda tupl: -1.*sum(tupl)/len(tupl)
+        defaultLossFunction = lambda tupl: 100-1.*sum(tupl)/len(tupl)
         #defaultLossFunction = lambda tupl: 100-1* tupl[5]
 
 
@@ -47,10 +47,15 @@ class Model_MIS(Meta_Model.MetaModel):
         for event in self.events.values():
             event.resetFunction()
 
-    def TaskTime(self,index):
-        variant = self.activities[index-1].variants[0]
+    def TaskTime(self,taskIndex):
+        variant = self.activities[taskIndex-1].variants[0]
         tasktime = variant.progress
         return tasktime
+
+    def TaskOvertime(self,taskIndex):
+        variant = self.activities[taskIndex - 1].variants[0]
+        overtime = variant.progress - variant.base_duration
+        return overtime
 
     def OnEventList(self,eventID):
         event = self.events[eventID-1]
@@ -63,7 +68,7 @@ class Model_MIS(Meta_Model.MetaModel):
     def ResourceAvailable(self,resourceNumber):
         return resourceNumber not in self.boughtResources
 
-    def RandomPercent(self):
+    def RandomPercent(self,model):
         return random.randrange(0,100)
 
 
@@ -78,7 +83,7 @@ class Model_MIS(Meta_Model.MetaModel):
         event.occurConditions_basic.append(timeCondition)
 
     def action_ProjectDelay(self,noDays):
-        self.Time += noDays
+        self.TimeDelay += noDays
 
     def action_TaskQuality(self, taskID,num):
         variant = self.activities[taskID-1].variants[0]
@@ -133,7 +138,7 @@ class Variant_MIS(Meta_Model.Variant):
         self.base_cost = base_cost
         self.cost = base_cost
         self.quality = 0
-        self.progress = 0
+        self.progress = -1
 
         super().__init__(self.simulate,self.simulateStepFunction)
 
@@ -141,7 +146,7 @@ class Variant_MIS(Meta_Model.Variant):
         self.duration = self.base_duration
         self.cost = self.base_cost
         self.quality = 0
-        self.progress = 0
+        self.progress = -1
         super().resetFunction()
 
     def simulate(self):
@@ -162,5 +167,7 @@ class Variant_MIS(Meta_Model.Variant):
                 self.activity.startpoint = max(pred.endpoint for pred in self.activity.predecessors)
             else:
                 self.activity.startpoint = int(0)
+            self.progress = 0
+
 
 
