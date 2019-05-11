@@ -16,6 +16,11 @@ class Model_MIS(Meta_Model.MetaModel):
 
 
         self.simulate = self.simulateStepwise_withEvents #the normal simulation is here the one with events
+        self.baseBudget = int(1.1 * pow(10,6))
+        self.baseScoreQuality = 50
+        self.startCost = sum(act.variants[0].base_cost for act in activities)
+        self.taskIDcriticalPath = [1,2,3,4,8,10,11,15,17,18]
+        self.startDuration = sum(activities[taskID-1].variants[0].duration for taskID in self.taskIDcriticalPath)
 
 
 
@@ -26,14 +31,15 @@ class Model_MIS(Meta_Model.MetaModel):
     def calcPerformanceFunction(self,activities=[]):
         if activities == []:
             activities = self.activities
-        #totalDuration = self.Time
         #totalCost = sum([act.variants[0].cost for act in activities])+self.projectCost
-        return (self.ScoreCost,self.ScoreTime,self.ScoreQuality,self.ScoreAcceptance,self.ScoreMorale,self.ScoreSecurity)
+        return (self.ScoreCost(),self.ScoreTime(),self.ScoreQuality(),self.ScoreAcceptance,self.ScoreMorale,self.ScoreSecurity)
 
     def resetFunction(self):
-        self.ScoreCost = 53
-        self.ScoreTime = 59
-        self.ScoreQuality = 50
+        self.cost = self.startCost
+        self.budget = self.baseBudget
+        self.quality = 0
+        self.delay = 0
+
         self.ScoreAcceptance = 50
         self.ScoreMorale = 50
         self.ScoreSecurity = 50
@@ -46,6 +52,24 @@ class Model_MIS(Meta_Model.MetaModel):
             act.resetFunction()
         for event in self.events.values():
             event.resetFunction()
+
+    def ScoreCost(self):
+        baseScoreCost = 53
+        scoreCost = baseScoreCost * self.cost/self.budget * self.baseBudget / self.startCost
+        return scoreCost
+
+    def ScoreTime(self):
+        baseScoreTime = 59
+        scoreTime = baseScoreTime*self.startDuration/(self.startDuration+self.delay)
+        return scoreTime
+
+    def ScoreQuality(self):
+        baseScoreQuality = 50
+        totalQuality = sum(act.variants[0].quality for act in self.activities)
+        return baseScoreQuality + totalQuality
+
+
+
 
     def TaskTime(self,taskIndex):
         variant = self.activities[taskIndex-1].variants[0]
@@ -84,6 +108,7 @@ class Model_MIS(Meta_Model.MetaModel):
 
     def action_ProjectDelay(self,noDays):
         self.TimeDelay += noDays
+        self.delay += noDays
 
     def action_TaskQuality(self, taskID,num):
         variant = self.activities[taskID-1].variants[0]
@@ -108,6 +133,8 @@ class Model_MIS(Meta_Model.MetaModel):
     def action_TaskDelay(self,taskID,noDays):
         variant = self.activities[taskID - 1].variants[0]
         variant.duration += noDays
+        if taskID in self.taskIDcriticalPath:
+            self.delay+=noDays
 
     def action_CancelEvent(self,eventID):
         event = self.events[eventID]

@@ -36,9 +36,14 @@ class MIS_conditionStringsToLambdas():
             if attributeString == 'Time' or attributeString == 'TimeLag':
                 optionalEventObject.isActivated = True
             dict = {}
-            dict['>'] = lambda model: getattr(model,attributeString) > value
-            dict['='] = lambda model: getattr(model,attributeString) == value
-            dict['<'] = lambda model: getattr(model,attributeString) < value
+            if attributeString == 'ScoreCost' or attributeString == 'ScoreTime' or attributeString == 'ScoreQuality':
+                dict['>'] = lambda model: getattr(model, attributeString)() > value
+                dict['='] = lambda model: getattr(model, attributeString)() == value
+                dict['<'] = lambda model: getattr(model, attributeString)() < value
+            else:
+                dict['>'] = lambda model: getattr(model,attributeString) > value
+                dict['='] = lambda model: getattr(model,attributeString) == value
+                dict['<'] = lambda model: getattr(model,attributeString) < value
             cond = dict[comparisonString]
             return cond
 
