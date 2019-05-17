@@ -11,7 +11,7 @@ class Model_MIS(Meta_Model.MetaModel):
         filename = '../Model_MIS/MIS_PM.xlsx'
         activities, events = MIS_LoadData.loadData(filename)
         defaultLossFunction = lambda tupl: 100-1.*sum(tupl)/len(tupl)
-        #defaultLossFunction = lambda tupl: 100-1* tupl[5]
+        #defaultLossFunction = lambda tupl: 100-1* tupl[2]
 
 
 
@@ -19,13 +19,11 @@ class Model_MIS(Meta_Model.MetaModel):
         self.baseBudget = int(1.1 * pow(10,6))
         self.baseScoreQuality = 50
         self.startCost = sum(act.variants[0].base_cost for act in activities)
-        self.taskIDcriticalPath = [1,2,3,4,8,10,11,15,17,18]
-        self.startDuration = sum(activities[taskID-1].variants[0].duration for taskID in self.taskIDcriticalPath)
-
 
 
 
         super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,events)
+        self.targetDuration = 330
         self.resetFunction()
 
     def calcPerformanceFunction(self,activities=[]):
@@ -46,27 +44,42 @@ class Model_MIS(Meta_Model.MetaModel):
 
         self.boughtResources = []
         self.projectCost = 0
-        self.budget = int(1.1 * pow(10,6))
+        self.budget = int(1100)
 
         for act in self.activities:
             act.resetFunction()
         for event in self.events.values():
             event.resetFunction()
 
+    def criticalPathLength(self):
+        for activity in self.activities:
+            if activity.finished == True:
+                activity.expectedEndpoint = activity.startpoint + activity.variants[0].duration
+            if len(activity.predecessors) == 0:
+                startpoint = 0
+            else:
+                startpoint = max(act.expectedEndpoint for act in activity.predecessors)
+            activity.expectedEndpoint = startpoint + activity.variants[0].duration
+        return activity.expectedEndpoint
+
+
+
+
     def ScoreCost(self):
-        baseScoreCost = 53
-        scoreCost = baseScoreCost * self.cost/self.budget * self.baseBudget / self.startCost
+        costScale = 30
+        scoreCost = 50 + (self.budget - self.cost)*1.0/costScale
         return scoreCost
 
     def ScoreTime(self):
-        baseScoreTime = 59
-        scoreTime = baseScoreTime*self.startDuration/(self.startDuration+self.delay)
+        timeScale = 5
+        actualDuration = self.criticalPathLength()
+        scoreTime = 50 + (self.targetDuration - actualDuration)*1.0 /timeScale
         return scoreTime
 
     def ScoreQuality(self):
-        baseScoreQuality = 50
-        totalQuality = sum(act.variants[0].quality for act in self.activities)
-        return baseScoreQuality + totalQuality
+        meanActivityQuality = sum(act.variants[0].quality for act in self.activities)/len(self.activities)
+        scoreQuality = 50 +meanActivityQuality*1.0*10
+        return scoreQuality
 
 
 
@@ -108,7 +121,6 @@ class Model_MIS(Meta_Model.MetaModel):
 
     def action_ProjectDelay(self,noDays):
         self.TimeDelay += noDays
-        self.delay += noDays
 
     def action_TaskQuality(self, taskID,num):
         variant = self.activities[taskID-1].variants[0]
@@ -133,15 +145,13 @@ class Model_MIS(Meta_Model.MetaModel):
     def action_TaskDelay(self,taskID,noDays):
         variant = self.activities[taskID - 1].variants[0]
         variant.duration += noDays
-        if taskID in self.taskIDcriticalPath:
-            self.delay+=noDays
 
     def action_CancelEvent(self,eventID):
         event = self.events[eventID]
         event.isActivated = False
 
     def action_Budget(self,num):
-        self.budget += num*1000
+        self.budget += num
 
     def action_CurrTaskQual(self,num):
         currTask = next(task for task in self.activities if not task.finished)
