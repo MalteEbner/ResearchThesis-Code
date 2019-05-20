@@ -1,7 +1,9 @@
 from Model_TopSim_RollerCoaster import RollerCoaster_LoadSchedule
 from Model_TopSim_RollerCoaster import RollerCoaster_LossFunction
 from Meta_Model import Meta_Model
-import random
+from Meta_Model import commonFunctions
+import mcerp3
+
 import numpy as np
 
 
@@ -49,9 +51,11 @@ def simulate_RollerCoaster(activity,variantData,probabilisticModel):
         startpoint = int(0)
     duration = variantData.duration
     cost = variantData.cost
-    if probabilisticModel and random.random() < variantData.risk:
-        duration *= 1 + variantData.risk
-        cost *= 1 + variantData.risk
+    if probabilisticModel:
+        risk = variantData.risk
+        factor = commonFunctions.pertRV(1/(1+risk),1,1+risk)
+        duration *= factor
+        cost *= factor
     activity.startpoint = startpoint
     activity.endpoint = startpoint + duration
     activity.cost = variantData.cost
