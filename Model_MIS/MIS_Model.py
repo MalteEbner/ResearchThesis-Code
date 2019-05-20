@@ -1,12 +1,10 @@
 from Model_MIS import MIS_LoadData
-#from Model_MIS import RollerCoaster_LossFunction
 from Meta_Model import Meta_Model
+from Meta_Model import Meta_Model_stepwise
 import random
-import re
-import numpy as np
 
 
-class Model_MIS(Meta_Model.MetaModel):
+class Model_MIS(Meta_Model_stepwise.MetaModel_stepwise):
     def __init__(self):
         filename = '../Model_MIS/MIS_PM.xlsx'
         activities, events = MIS_LoadData.loadData(filename)
@@ -22,7 +20,7 @@ class Model_MIS(Meta_Model.MetaModel):
 
 
 
-        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,events)
+        Meta_Model_stepwise.MetaModel_stepwise.__init__(self,activities,defaultLossFunction,self.calcPerformanceFunction,events)
         self.targetDuration = 330
         self.resetFunction()
 
