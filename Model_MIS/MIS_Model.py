@@ -1,11 +1,10 @@
 from Model_MIS import MIS_LoadData
 from Meta_Model import Meta_Model
-from Meta_Model import Meta_Model_stepwise
 import random
 
 
-class Model_MIS(Meta_Model_stepwise.MetaModel_stepwise):
-    def __init__(self):
+class Model_MIS(Meta_Model.MetaModel):
+    def __init__(self,modelOptions):
         filename = '../Model_MIS/MIS_PM.xlsx'
         activities, events = MIS_LoadData.loadData(filename)
         defaultLossFunction = lambda tupl: 100-1.*sum(tupl)/len(tupl)
@@ -13,14 +12,14 @@ class Model_MIS(Meta_Model_stepwise.MetaModel_stepwise):
 
 
 
-        self.simulate = self.simulateStepwise_withEvents #the normal simulation is here the one with events
+
         self.baseBudget = int(1.1 * pow(10,6))
         self.baseScoreQuality = 50
         self.startCost = sum(act.variants[0].base_cost for act in activities)
 
 
 
-        Meta_Model_stepwise.MetaModel_stepwise.__init__(self,activities,defaultLossFunction,self.calcPerformanceFunction,events)
+        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,modelOptions,events)
         self.targetDuration = 330
         self.resetFunction()
 
@@ -196,13 +195,7 @@ class Variant_MIS(Meta_Model.Variant):
             self.activity.endpoint = self.activity.startpoint+self.duration
         return relProgress
 
-    def ensureStartpoint(self):
-        if not hasattr(self.activity,'startpoint'):
-            if len(self.activity.predecessors) > 0:
-                self.activity.startpoint = max(pred.endpoint for pred in self.activity.predecessors)
-            else:
-                self.activity.startpoint = int(0)
-            self.progress = 0
+
 
 
 

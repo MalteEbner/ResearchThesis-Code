@@ -4,7 +4,7 @@ load data from excel
 '''
 import pandas as pd
 
-def loadActivityData(filename,probabilisticModel):
+def loadActivityData(filename,modelOptions):
     sheet = pd.read_excel(filename, sheet_name='Schedule')
 
     activities = []
@@ -23,7 +23,7 @@ def loadActivityData(filename,probabilisticModel):
                 followerIndices = [] # no follower
             followerIndicesMatrix.append(followerIndices)
 
-            variantDataList = []
+            variantList = []
             for variantIndex in range(4):
                 durationColumn = variantIndex*5+4
                 duration = sheet[durationColumn][activityIndex]
@@ -32,9 +32,9 @@ def loadActivityData(filename,probabilisticModel):
                     technology = sheet[durationColumn+2][activityIndex]
                     quality = sheet[durationColumn+3][activityIndex]
                     risk = sheet[durationColumn+4][activityIndex]
-                    variantData = RollerCoaster_Model.VariantData_RollerCoaster(duration,cost,technology,quality,risk)
-                    variantDataList.append(variantData)
-            activity = RollerCoaster_Model.Activity_RollerCoaster(variantDataList,name,activityNumber,probabilisticModel)
+                    variant = RollerCoaster_Model.Variant_RollerCoaster(modelOptions,duration,cost,technology,quality,risk)
+                    variantList.append(variant)
+            activity = RollerCoaster_Model.Activity_RollerCoaster(modelOptions,variantList,name,activityNumber)
             activities.append(activity)
 
     #write down predecessors

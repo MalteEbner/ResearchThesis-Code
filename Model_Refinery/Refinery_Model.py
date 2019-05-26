@@ -4,12 +4,12 @@ import numpy as np
 
 
 class Model_Refinery(Meta_Model.MetaModel):
-    def __init__(self):
-        filename = '/Users/malteebner/Library/Mobile Documents/com~apple~CloudDocs/Master ETIT/10. Semester/Forschungsarbeit/Project management paper/Andre Heleno Project_management_business_game /SimGame translated - Andre Heleno.xlsx'
+    def __init__(self,modelOptions):
+        filename = '../Model_Refinery/SimGame translated - Andre Heleno.xlsx'
         self.suppliers = Refinery_Model_suppliers.loadSupplierData(filename)
         activities = Refinery_Model_ProjectNetwork.loadActivityData(self.suppliers,filename)
         defaultLossFunction = lambda tupl: tupl[0]*tupl[1]
-        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction)
+        super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,modelOptions)
 
     def calcPerformanceFunction(self,activities):
         totalDuration = max(act.endpoint for act in activities)

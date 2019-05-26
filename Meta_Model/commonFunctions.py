@@ -4,8 +4,9 @@ import random
 def softmax(x):
     x = np.array(x)
     y = np.exp(x)/sum(np.exp(x))
-    z = np.floor(y*(2**20))#ensure softmax sums up to 1
-    z = z/(2**20)
+    z=y
+    #z = np.floor(y*(2**30))#ensure softmax sums up to 1
+    #z = z/(2**30)
     z[0] = 1-sum(z[1:])
     return z
 

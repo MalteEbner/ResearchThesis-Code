@@ -9,7 +9,8 @@ class GeneticOpt():
         self.activityVariantNumbers = activityVariantNumbers
         self.noActvities = len(activityVariantNumbers)
 
-        self.population = self.initialPopulation(initialPopSize)
+        self.population = self.initialPopulation(initialPopSize-1)
+        self.population.append([0 for i in range(self.noActvities)])
 
         self.lossFunction = lossFunction
 
@@ -50,10 +51,11 @@ class GeneticOpt():
 
 
     def selection(self,losses,matePoolSize=20,eliteSize=5):
-        probs = commonFunctions.probsFromLosses(losses,0.1)
+        exploitationFactor = 0.1
+        probs = commonFunctions.probsFromLosses(losses,exploitationFactor)
         matePopIndices = np.random.choice(range(len(probs)), matePoolSize, replace=False, p=probs)
         elitePopIndices = np.argpartition(probs, -1*eliteSize)[-1*eliteSize:]
-        matePopIndices = set(matePopIndices)-set(elitePopIndices)
+        #matePopIndices = set(matePopIndices)-set(elitePopIndices)
         return matePopIndices,elitePopIndices
 
     def breedPopulation(self,matePopIndices, elitePopIndices):
