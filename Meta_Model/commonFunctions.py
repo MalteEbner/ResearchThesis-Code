@@ -29,3 +29,9 @@ def pertRV(low,peak,high,g=4):
     rv = np.random.beta(a1,a2) #distributed in (0,1)
     rv = rv*(c-a)+a #distributed in (a,c)
     return rv
+
+def chrashingCostIncrease(timeFactor):
+    if timeFactor >=1:
+        return 1
+    else:
+        costFactor = 560.7 * np.exp(-9.43*timeFactor)+0.955
