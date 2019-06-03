@@ -32,8 +32,7 @@ class Activity_refinery(Meta_Model.Activity):
         self.base_cost_per_day = base_cost_per_day
         self.suppliers = suppliers
 
-        simulateFunctions = [(lambda y: ( lambda: simulate_refinery(self, y)))(supplier) for supplier in suppliers]
-        variants = [Meta_Model.Variant(simulateFunction) for simulateFunction in simulateFunctions]
+        variants = [Variant_Refinery(supplier) for supplier in suppliers]
         super().__init__(predecessors,variants,activity_ID)
 
     def __repr__(self):
@@ -57,27 +56,31 @@ class Compentence():
         self.costEfficiency = costEfficiency
         self.qualityEfficiency = qualityEfficiency
 
+class Variant_Refinery(Meta_Model.Variant):
+    def __init__(self,supplier):
+        self.supplier = supplier
 
-def simulate_refinery(activity_refinery,supplier):
-    competence = supplier.competences[activity_refinery.type]
-    if len(activity_refinery.predecessors)>0:
-        predecessorQualities = [pred.quality for pred in activity_refinery.predecessors]
-        averagePredecessorQuality = np.mean(predecessorQualities)
-        predecessorEndpoints = [pred.endpoint for pred in activity_refinery.predecessors]
-        startpoint = np.max(predecessorEndpoints)
-    else:
-        averagePredecessorQuality = 1
-        startpoint = int(0)
-    quality = 0.75 * competence.qualityEfficiency + 0.25 * averagePredecessorQuality
-    duration = int(np.ceil(activity_refinery.base_duration /(competence.durationEfficiency*quality**2)))
-    cost = int(np.ceil(activity_refinery.base_cost_per_day* duration/competence.costEfficiency**1))
-    endpoint = startpoint+duration
-    activity_refinery.duration = duration
-    activity_refinery.cost = cost
-    activity_refinery.quality = quality
-    activity_refinery.startpoint = startpoint
-    activity_refinery.endpoint = endpoint
-    return duration,cost,quality
+    def simulate(self,model):
+        self.ensureStartpoint()
+
+        if len(self.activity.predecessors)>0:
+            predecessorQualities = [pred.quality for pred in self.activity.predecessors]
+            averagePredecessorQuality = np.mean(predecessorQualities)
+        else:
+            averagePredecessorQuality = 1
+
+        competence = self.supplier.competences[self.activity.type]
+        quality = 0.75 * competence.qualityEfficiency + 0.25 * averagePredecessorQuality
+        duration = int(np.ceil(self.activity.base_duration /(competence.durationEfficiency*quality**2)))
+        cost = int(np.ceil(self.activity.base_cost_per_day* duration/competence.costEfficiency**1))
+        endpoint = self.activity.startpoint+duration
+
+        self.activity.duration = duration
+        self.activity.cost = cost
+        self.activity.quality = quality
+        self.activity.endpoint = endpoint
+
+        return duration,cost,quality
 
 
 '''

@@ -12,9 +12,9 @@ model = generateModel(modelOptions)
 
 '''define start Population of genetic algorithm'''
 actionSpace = model.getActionSpace()
-genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss,50)
-if hasattr(model,'getGoodStartpoint') and False:
-    startChromosome = model.getGoodStartpoint()
+genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss,500)
+if hasattr(model,'getGoodStartpoint'):
+    startChromosome = model.getGoodStartpoint(actionSpace)
 else:
     startChromosome = actionSpace.getZeroAction()
 genePool.appendToPop(startChromosome)
@@ -22,7 +22,7 @@ print(model.simulateMean(startChromosome))
 
 '''run genetic algorithm'''
 start = time.time()
-for i in range(10):
+for i in range(100):
     bestAction = genePool.generateNewPop()
     print(str(i) + ":  " + str(model.simulateMean(bestAction)))
 end = time.time()

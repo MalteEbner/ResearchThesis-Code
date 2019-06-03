@@ -24,7 +24,7 @@ class Model_RollerCoaster(Meta_Model.MetaModel):
         totalQuality = sum([act.quality for act in activities])
         return (totalDuration,totalCost,totalTechnology,totalQuality)
 
-    def getGoodStartpoint(self):
+    def getGoodStartpoint(self,actionSpace):
         if self.modelOptions.probabilistic == False:
             return [1, 2, 3, 3, 3, 3, 0, 3, 0, 1, 3, 3, 3, 1, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 1, 3, 3, 2, 3, 3, 3, 0, 3, 1, 2, 0]
         else:

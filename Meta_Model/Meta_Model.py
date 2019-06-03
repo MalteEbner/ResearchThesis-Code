@@ -75,19 +75,19 @@ class MetaModel:
         loss = self.simulateMean(action,lossFunction,randomTestsToMean)[0]
         return loss
 
-    def getStartpoint(self, actionSpace,lossFunction=[]):
+    def getGoodStartpoint(self, actionSpace,lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
         startIndizes_activities = []
         for activity in self.activities:
-            variantLosses = [lossFunction(var.simulate()) for var in activity.variants]
+            variantLosses = [lossFunction(var.simulate(self)) for var in activity.variants]
             bestVariant = np.argmin(
                 variantLosses)  # get the best Variant w.r.t to the loss assuming it is a single-activity-project
-            activity.variants[bestVariant].simulate()  # assume all predecessors(and their quality) are optimal
+            activity.variants[bestVariant].simulate(self)  # assume all predecessors(and their quality) are optimal
             startIndizes_activities.append(bestVariant)
 
         action = ActionSpace.Action(actionSpace)
-        action.saveDirectly(startIndizes_activities,self.getZeroStartpoint_events())
+        action.saveDirectly(startIndizes_activities,[0 for i in self.events])
         return action
 
 
