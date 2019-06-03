@@ -30,7 +30,7 @@ def pertRV(low,peak,high,g=4):
     rv = rv*(c-a)+a #distributed in (a,c)
     return rv
 
-def chrashingCostIncrease(timeFactor):
+def scheduleCompressionCostIncrease(timeFactor):
     if timeFactor >=1:
         return 1
     else:

@@ -1,54 +1,39 @@
 import random
 import numpy as np
 from Meta_Model import commonFunctions
+from Meta_Model import ActionSpace
 
 class GeneticOpt():
 
-    def __init__(self,activityVariantNumbers,lossFunction,initialPopSize=200):
+    def __init__(self,actionSpace,lossFunction,initialPopSize=200):
 
-        self.activityVariantNumbers = activityVariantNumbers
-        self.noActvities = len(activityVariantNumbers)
-
-        self.population = self.initialPopulation(initialPopSize-1)
-        self.population.append([0 for i in range(self.noActvities)])
-
+        self.variantNumbers = actionSpace.activityVariantNumbers+actionSpace.eventVariantNumbers
+        self.noVariants = len(self.variantNumbers)
+        self.actionSpace = actionSpace
         self.lossFunction = lossFunction
+
+        self.initializePopulation(initialPopSize)
+
 
         self.defaultMutateProb = 1/15
 
-    def mutate(self,chromosome,prob=[]):
-        if prob == []:
-            prob = self.defaultMutateProb
-        for i in range(self.noActvities):
-            if random.random() < prob:
-                chromosome[i] = random.randrange(self.activityVariantNumbers[i])
-        return chromosome
 
-    def cross(self, chromosomeA, chromosomeB, probB=0.5):
-        for i in range(self.noActvities):
-            if random.random() < probB:
-                chromosomeA[i] = chromosomeB[i]
-        return chromosomeA
 
-    def randomChromosome(self):
-        chrom = []
-        for i in range(self.noActvities):
-            variant_ID = random.randrange(self.activityVariantNumbers[i])
-            chrom.append(variant_ID)
-        return chrom
+    def initializePopulation(self,popSize):
+        self.population = [Chromosome(self.actionSpace.getRandomAction()) for i in range(popSize-1)]
+        self.appendToPop(self.actionSpace.getZeroAction())
 
-    def initialPopulation(self,popSize):
-        return [self.randomChromosome() for i in range(popSize)]
+    def appendToPop(self,action):
+        self.population.append(Chromosome(action))
 
     def generateNewPop(self,prob_Mutate=[]):
         if prob_Mutate==[]:
             prob_Mutate = self.defaultMutateProb
         losses = [self.lossFunction(chrom) for chrom in self.population]
-        soFarBestPop = self.getBestPop()[:]
+        soFarBestChromosome = self.getBestPop()
         matePopIndices, elitePopIndices = self.selection(losses)
         self.population = self.breedPopulation(matePopIndices,elitePopIndices)
-        return soFarBestPop
-
+        return soFarBestChromosome
 
     def selection(self,losses,matePoolSize=20,eliteSize=5):
         exploitationFactor = 0.1
@@ -61,22 +46,35 @@ class GeneticOpt():
     def breedPopulation(self,matePopIndices, elitePopIndices):
         elitePop = [self.population[i] for i in elitePopIndices]
         matePop = [self.population[i] for i in matePopIndices]
-        totalPop = elitePop[:]
-        totalPop.extend(matePop)
+
+        totalParentPop = elitePop[:]
+        totalParentPop.extend(matePop)
+
+        '''
+        Child Population consists of
+        a) elitePop, unchanged
+        b) elitePop, mutated
+        c) totalParentPop, crossed & mutated
+        '''
+
+        #a)
         childPop = elitePop[:]
+
+        #b)
         for elite in elitePop:
-            mutated_elite = self.mutate(elite[:])
-            if True: #not mutated_elite in childPop:
-                childPop.append(mutated_elite)
+            mutated_elite = elite.mutate(self.defaultMutateProb)
+            childPop.append(mutated_elite)
+
+        #c)
         while len(childPop) < len(self.population):
-            mateAindex = random.randrange(len(totalPop))
-            mateBindex = random.randrange(len(totalPop))
-            mateA = totalPop[mateAindex]
-            mateB = totalPop[mateBindex]
-            crossed_mate = self.cross(mateA[:],mateB[:])
-            mutated_mate = self.mutate(crossed_mate[:])
-            if True:#not mutated_mate in childPop:
-                childPop.append(mutated_mate)
+            mateAindex = random.randrange(len(totalParentPop))
+            mateBindex = random.randrange(len(totalParentPop))
+            mateA = totalParentPop[mateAindex]
+            mateB = totalParentPop[mateBindex]
+            crossed_child = mateA.cross(mateB)
+            child = crossed_child.mutateWithouCopying(self.defaultMutateProb)
+            childPop.append(child)
+
         return childPop
 
     def getBestPop(self,losses=[],lossFunction=[]):
@@ -86,5 +84,52 @@ class GeneticOpt():
             losses = [lossFunction(chrom) for chrom in self.population]
         bestIndex = np.argmin(losses)
         return self.population[bestIndex]
+
+
+class Chromosome(ActionSpace.Action):
+    def __init__(self,action):
+        self.__dict__.update(action.__dict__)
+
+    def getCopiedChrom(self):
+        newChrom = Chromosome(self)
+        newChrom.saveDirectly(self.activityIndizes[:],self.eventIndizes[:],self.compressionFactors[:])
+        return newChrom
+
+    def mutate(self,mutateProb):
+
+        newChrom = self.getCopiedChrom()
+        newChrom.mutateWithouCopying(mutateProb)
+
+        return newChrom
+
+    def mutateWithouCopying(self,mutateProb):
+        for i in range(self.actionSpace.noActivities):
+            if random.random() < mutateProb:
+                self.activityIndizes[i] = random.randrange(self.actionSpace.activityVariantNumbers[i])
+
+        for i in range(self.actionSpace.noEvents):
+            if random.random() < mutateProb:
+                self.eventIndizes[i] = random.randrange(self.actionSpace.eventVariantNumbers[i])
+
+        return self
+
+
+    def cross(self, chromosomeB, probB=0.5):
+        newChrom = self.getCopiedChrom()
+
+        for i in range(newChrom.actionSpace.noActivities):
+            if random.random() < probB:
+                newChrom.activityIndizes[i] = chromosomeB.activityIndizes[i]
+
+        for i in range(newChrom.actionSpace.noEvents):
+            if random.random() < probB:
+                newChrom.eventIndizes[i] = chromosomeB.activityIndizes[i]
+
+        return newChrom
+
+
+
+
+
 
 

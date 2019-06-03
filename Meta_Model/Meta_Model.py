@@ -1,5 +1,6 @@
 import numpy as np
 from Meta_Model import Meta_Model_options
+from Meta_Model import ActionSpace
 
 import copy
 
@@ -17,14 +18,29 @@ class MetaModel:
             self.simulate = self.simulateStepwise_withEvents  # the normal simulation is the one with events
 
 
-    def getVariantNumbers(self):
-        variantNumsActivities = [len(act.variants) for act in self.activities]
-        return variantNumsActivities
 
-    def simulate(self, chosenVariantIndizes, lossFunction=[]):
+    def orderedEventIDs(self):
+        if self.events == []:
+            return []
+        eventIDs = list(self.events.keys())
+        eventIDs.sort()
+        return eventIDs
+
+    def getActionSpace(self):
+        variantNumsActivities = [len(act.variants) for act in self.activities]
+        variantNumsEvents = [len(self.events[eventID].eventOptions) for eventID in self.orderedEventIDs()]
+        actionSpace = ActionSpace.ActionSpace(variantNumsActivities,variantNumsEvents)
+        return actionSpace
+
+
+
+    def simulate(self, action, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        for activity, index in zip(self.activities, chosenVariantIndizes):
+        if not hasattr(action,'activityIndizes'):
+            I=0
+        activityIndizes = action.activityIndizes
+        for activity, index in zip(self.activities, activityIndizes):
             activity.variants[index].simulate(self)
 
         self.performance = self.calcPerformanceFunction(self.activities)
@@ -40,27 +56,26 @@ class MetaModel:
 
 
 
-    def simulateMean(self,chosenVariantIndizes, lossFunction=[], randomTestsToMean=[]):
+    def simulateMean(self,action, lossFunction=[], randomTestsToMean=[]):
         if randomTestsToMean==[]:
             randomTestsToMean=20
-        noTests = int(randomTestsToMean)
-        performances = [self.simulate(chosenVariantIndizes,lossFunction) for i in range(randomTestsToMean)]
+        performances = [self.simulate(action,lossFunction) for i in range(randomTestsToMean)]
         meanPerformance = np.mean(performances,axis=0)
         meanPerformance = np.round(meanPerformance,2)
         return meanPerformance
 
-    def simulate_returnLoss(self, chosenVariantIndizes, lossFunction=[]):
+    def simulate_returnLoss(self, action, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        perf = self.simulate(chosenVariantIndizes,lossFunction)
+        perf = self.simulate(action,lossFunction)
         loss = perf[0]
         return loss
 
-    def simulateMean_returnLoss(self,chosenVariantIndizes, lossFunction=[], randomTestsToMean=[]):
-        loss = self.simulateMean(chosenVariantIndizes,lossFunction,randomTestsToMean)[0]
+    def simulateMean_returnLoss(self,action, lossFunction=[], randomTestsToMean=[]):
+        loss = self.simulateMean(action,lossFunction,randomTestsToMean)[0]
         return loss
 
-    def getStartpoint(self, lossFunction=[]):
+    def getStartpoint(self, actionSpace,lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
         startIndizes_activities = []
@@ -70,15 +85,11 @@ class MetaModel:
                 variantLosses)  # get the best Variant w.r.t to the loss assuming it is a single-activity-project
             activity.variants[bestVariant].simulate()  # assume all predecessors(and their quality) are optimal
             startIndizes_activities.append(bestVariant)
-        return startIndizes_activities + self.getZeroStartpoint_events()
 
-    def getZeroStartpoint(self):
-        startIndizes_activities = [int(0) for act in self.activities]
-        return startIndizes_activities + self.getZeroStartpoint_events()
+        action = ActionSpace.Action(actionSpace)
+        action.saveDirectly(startIndizes_activities,self.getZeroStartpoint_events())
+        return action
 
-    def getZeroStartpoint_events(self):
-        startIndizes = [0 for i in self.events]
-        return startIndizes
 
     def getActivityLosses(self, lossFunction=[]):
         if lossFunction == []:
@@ -92,38 +103,20 @@ class MetaModel:
             losses.append(optionsLosses)
         return losses
 
-    def orderedEventIDs(self):
-        if self.events ==[]:
-            return []
-        eventIDs = list(self.events.keys())
-        eventIDs.sort()
-        return eventIDs
 
-    def getVariantNumbers(self):
-        variantNumsActivities = [len(act.variants) for act in self.activities]
-        variantNumsEvents = [len(self.events[eventID].eventOptions) for eventID in self.orderedEventIDs()]
-        return variantNumsActivities + variantNumsEvents
 
-    def chosenVariantIndizes_activititesEvents_to_seperateOnes(self,chosenVariantIndizes_activitiesEvents):
-        noActivities = len(self.activities)
-        chosenActivityVariantIndizes = chosenVariantIndizes_activitiesEvents[:noActivities]
-        chosenEventOptionIndizes_List = chosenVariantIndizes_activitiesEvents[noActivities:]
-        eventIDs = self.orderedEventIDs()
-        chosenEventOptionIndizes = dict(zip(eventIDs,chosenEventOptionIndizes_List))
-        return chosenActivityVariantIndizes,chosenEventOptionIndizes
-
-    def simulateStepwise_withEvents(self,chosenVariantIndizes_activitiesEvents,lossFunction=[]):
+    def simulateStepwise_withEvents(self,action,lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
+        activityIndizes = action.activityIndizes
+        eventOptionDict = action.eventIndizesAsDict(self.orderedEventIDs())
 
-        chosenVariantIndizes, chosenEventOptionIndizes = self.chosenVariantIndizes_activititesEvents_to_seperateOnes(chosenVariantIndizes_activitiesEvents)
+        chosenVariantIndizes = action.activityIndizes
 
         self.Time = 0
         self.TimeDelay = 0
         self.noEventsPlayed = 0
 
-        #activities = copy.deepcopy(self.activities)
-        #events = copy.deepcopy(self.events)
         activities = self.activities
         events = self.events
 
@@ -142,7 +135,7 @@ class MetaModel:
             # run all occuring events
             for eventID in events.keys():
                 event = events[eventID]
-                eventOptionIndex = chosenEventOptionIndizes[eventID]
+                eventOptionIndex = eventOptionDict[eventID]
                 event.runEvent(self,eventOptionIndex)
 
             #increase time
