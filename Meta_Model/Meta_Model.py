@@ -52,6 +52,8 @@ class MetaModel:
 
 
     def resetFunction(self):
+        for act in self.activities:
+            act.resetFunction()
         pass
 
 
@@ -165,6 +167,8 @@ class Activity():
 
     def resetFunction(self):
         self.finished = False
+        if hasattr(self, 'startpoint'):
+            del self.startpoint
         for var in self.variants:
             var.resetFunction()
 
@@ -181,8 +185,6 @@ class Variant():
                 self.activity.finished = True
 
     def resetFunction(self):
-        if hasattr(self.activity, 'startpoint'):
-            del self.activity.startpoint
         pass
 
     def ensureStartpoint(self):
