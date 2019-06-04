@@ -2,7 +2,8 @@ from Model_TopSim_RollerCoaster import RollerCoaster_LoadSchedule
 from Model_TopSim_RollerCoaster import RollerCoaster_LossFunction
 from Meta_Model import Meta_Model
 from Meta_Model import commonFunctions
-import mcerp3
+from Meta_Model import ActionSpace
+
 
 import numpy as np
 
@@ -25,10 +26,11 @@ class Model_RollerCoaster(Meta_Model.MetaModel):
         return (totalDuration,totalCost,totalTechnology,totalQuality)
 
     def getGoodStartpoint(self,actionSpace):
+        startpoint = actionSpace.getZeroAction()
         if self.modelOptions.probabilistic == False:
-            return [1, 2, 3, 3, 3, 3, 0, 3, 0, 1, 3, 3, 3, 1, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 1, 3, 3, 2, 3, 3, 3, 0, 3, 1, 2, 0]
-        else:
-            return self.getZeroStartpoint()
+            goodActivityStartpoint = [1, 2, 3, 3, 3, 3, 0, 3, 0, 1, 3, 3, 3, 1, 3, 2, 3, 3, 3, 3, 3, 3, 3, 3, 0, 0, 3, 3, 3, 3, 3, 3, 3, 3, 1, 3, 3, 2, 3, 3, 3, 0, 3, 1, 2, 0]
+            startpoint.activityIndizes = goodActivityStartpoint
+        return startpoint
 
     def resetFunction(self):
         for act in self.activities:
@@ -45,15 +47,11 @@ class Activity_RollerCoaster(Meta_Model.Activity):
         super().__init__([],variants,activityID)
 
 class Variant_RollerCoaster(Meta_Model.Variant):
-    def __init__(self,modelOptions,duration,cost,technology,quality,risk):
+    def __init__(self,modelOptions,base_duration,base_cost,technology,quality,risk):
+        self.modelOptions = modelOptions
+        self.base_duration = base_duration
+        self.base_cost = base_cost
         self.risk = risk
-        if modelOptions.probabilistic:
-            factor = self.getPertFactor()
-            self.duration = duration*factor
-            self.cost = cost*factor
-        else:
-            self.duration = duration
-            self.cost = cost
         self.technology = technology
         self.quality = quality
         super().__init__(self.simulate_RollerCoaster,self.simulateStep_RollerCoaster)
@@ -66,6 +64,13 @@ class Variant_RollerCoaster(Meta_Model.Variant):
 
     def simulate_RollerCoaster(self,model):
         self.ensureStartpoint()
+        if self.modelOptions.probabilistic:
+            factor = self.getPertFactor()
+            self.duration = self.base_duration*factor
+            self.cost = self.base_cost*factor
+        else:
+            self.duration = self.base_duration
+            self.cost = self.base_cost
         self.activity.endpoint = self.activity.startpoint + self.duration
         self.activity.cost = self.cost
         self.activity.technology = self.technology
