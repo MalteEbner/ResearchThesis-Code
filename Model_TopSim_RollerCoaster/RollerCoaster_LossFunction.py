@@ -33,6 +33,7 @@ class RollerCoaster_Loss:
         cost = performance[1]
         technology = performance[2]
         quality = performance[3]
+        revenue = 8050
 
         defaultDuration = int(65)
         lossZeroPoint = int(52)
@@ -40,7 +41,9 @@ class RollerCoaster_Loss:
         lossTechnical = self.TechnologyLossList[int(-1*technology+lossZeroPoint)]
         lossQuality = self.QualityLossList[int(-1*quality + lossZeroPoint)]
         totalLoss = cost + lossDuration + lossTechnical + lossQuality
-        return totalLoss
+
+        profit = revenue - totalLoss
+        return -1 * profit
 
 
 
