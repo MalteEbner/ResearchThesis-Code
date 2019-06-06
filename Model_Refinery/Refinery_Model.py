@@ -1,6 +1,7 @@
 from Model_Refinery import Refinery_Model_suppliers, Refinery_Model_ProjectNetwork
 from Meta_Model import Meta_Model
 import numpy as np
+from Meta_Model import commonFunctions
 
 
 class Model_Refinery(Meta_Model.MetaModel):
@@ -60,7 +61,7 @@ class Variant_Refinery(Meta_Model.Variant):
     def __init__(self,supplier):
         self.supplier = supplier
 
-    def simulate(self,model):
+    def simulate(self,model,compressionFactor=1):
         self.ensureStartpoint()
 
         if len(self.activity.predecessors)>0:
@@ -69,12 +70,17 @@ class Variant_Refinery(Meta_Model.Variant):
         else:
             averagePredecessorQuality = 1
 
+
         competence = self.supplier.competences[self.activity.type]
         quality = 0.75 * competence.qualityEfficiency + 0.25 * averagePredecessorQuality
         duration = int(np.ceil(self.activity.base_duration /(competence.durationEfficiency*quality**2)))
         cost = int(np.ceil(self.activity.base_cost_per_day* duration/competence.costEfficiency**1))
-        endpoint = self.activity.startpoint+duration
 
+
+        duration *= compressionFactor
+        cost *= commonFunctions.scheduleCompressionCostIncrease(compressionFactor)
+
+        endpoint = self.activity.startpoint+duration
         self.activity.duration = duration
         self.activity.cost = cost
         self.activity.quality = quality

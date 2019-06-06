@@ -29,7 +29,7 @@ class MetaModel:
     def getActionSpace(self):
         variantNumsActivities = [len(act.variants) for act in self.activities]
         variantNumsEvents = [len(self.events[eventID].eventOptions) for eventID in self.orderedEventIDs()]
-        actionSpace = ActionSpace.ActionSpace(variantNumsActivities,variantNumsEvents)
+        actionSpace = ActionSpace.ActionSpace(variantNumsActivities,variantNumsEvents,self.modelOptions.withScheduleCompression)
         return actionSpace
 
 
@@ -37,11 +37,13 @@ class MetaModel:
     def simulate(self, action, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        if not hasattr(action,'activityIndizes'):
-            I=0
         activityIndizes = action.activityIndizes
-        for activity, index in zip(self.activities, activityIndizes):
-            activity.variants[index].simulate(self)
+        if self.modelOptions.withScheduleCompression:
+            for activity, index, compression in zip(self.activities, activityIndizes, action.scheduleCompressionFactors):
+                activity.variants[index].simulate(self,compression)
+        else:
+            for activity, index in zip(self.activities, activityIndizes):
+                activity.variants[index].simulate(self)
 
         self.performance = self.calcPerformanceFunction(self.activities)
         self.loss = lossFunction(self.performance)

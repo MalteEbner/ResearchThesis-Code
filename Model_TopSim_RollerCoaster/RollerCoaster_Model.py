@@ -62,7 +62,7 @@ class Variant_RollerCoaster(Meta_Model.Variant):
         return factor
 
 
-    def simulate_RollerCoaster(self,model):
+    def simulate_RollerCoaster(self,model,compressionFactor=1):
         self.ensureStartpoint()
         if self.modelOptions.probabilistic:
             factor = self.getPertFactor()
@@ -71,6 +71,10 @@ class Variant_RollerCoaster(Meta_Model.Variant):
         else:
             self.duration = self.base_duration
             self.cost = self.base_cost
+
+        self.duration *= compressionFactor
+        self.cost *= commonFunctions.scheduleCompressionCostIncrease(compressionFactor)
+
         self.activity.endpoint = self.activity.startpoint + self.duration
         self.activity.cost = self.cost
         self.activity.technology = self.technology

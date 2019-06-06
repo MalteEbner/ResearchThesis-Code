@@ -2,11 +2,11 @@
 
 
 class Meta_Model_options():
-    def __init__(self, type, probabilistic=False, withEvents=False, withCrashing = False, RLcapable=False):
+    def __init__(self, type, probabilistic=False, withEvents=False, withScheduleCompression = False, RLcapable=False):
         self.type = type
         self.probabilistic = probabilistic
         self.withEvents = withEvents
-        self.withCrashing = withCrashing
+        self.withScheduleCompression = withScheduleCompression
         self.RLcapable = RLcapable
 
 

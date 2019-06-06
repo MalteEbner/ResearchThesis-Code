@@ -15,7 +15,7 @@ class GeneticOpt():
         self.initializePopulation(initialPopSize)
 
 
-        self.defaultMutateProb = 1/15
+        self.defaultMutateProb = 1.0/15
 
 
 
@@ -92,7 +92,7 @@ class Chromosome(ActionSpace.Action):
 
     def getCopiedChrom(self):
         newChrom = Chromosome(self)
-        newChrom.saveDirectly(self.activityIndizes[:],self.eventIndizes[:],self.compressionFactors[:])
+        newChrom.saveDirectly(self.activityIndizes[:],self.eventIndizes[:],self.scheduleCompressionFactors[:])
         return newChrom
 
     def mutate(self,mutateProb):
@@ -106,6 +106,8 @@ class Chromosome(ActionSpace.Action):
         for i in range(self.actionSpace.noActivities):
             if random.random() < mutateProb:
                 self.activityIndizes[i] = random.randrange(self.actionSpace.activityVariantNumbers[i])
+            if random.random() < mutateProb:
+                self.scheduleCompressionFactors[i] = random.uniform(0.5,1)
 
         for i in range(self.actionSpace.noEvents):
             if random.random() < mutateProb:
@@ -118,8 +120,11 @@ class Chromosome(ActionSpace.Action):
         newChrom = self.getCopiedChrom()
 
         for i in range(newChrom.actionSpace.noActivities):
+            #mutate activityIndex, scheduleCompression combination together
             if random.random() < probB:
                 newChrom.activityIndizes[i] = chromosomeB.activityIndizes[i]
+                newChrom.scheduleCompressionFactors[i] = chromosomeB.scheduleCompressionFactors[i]
+
 
         for i in range(newChrom.actionSpace.noEvents):
             if random.random() < probB:

@@ -1,7 +1,8 @@
 import random
 
 class ActionSpace:
-    def __init__(self,activityVariantNumbers,eventVariantNumbers=[]):
+    def __init__(self,activityVariantNumbers,eventVariantNumbers=[],withScheduleCompression=False):
+        self.withScheduleCompression = withScheduleCompression
         self.noActivities = len(activityVariantNumbers)
         self.noEvents = len(eventVariantNumbers)
         self.activityVariantNumbers = activityVariantNumbers
@@ -10,22 +11,22 @@ class ActionSpace:
     def VariantNumbers(self):
         return self.activityVariantNumbers + self.eventVariantNumbers
 
-    def getZeroAction(self,withScheduleCompression=False):
+    def getZeroAction(self):
         action = Action(self)
         startIndizes_activities = [int(0) for i in self.activityVariantNumbers]
         startIndizes_events = [int(0) for i in self.eventVariantNumbers]
-        if withScheduleCompression:
+        if self.withScheduleCompression:
             startScheduleCompressionFactors = [1.0 for i in self.activityVariantNumbers]
         else:
             startScheduleCompressionFactors = []
         action.saveDirectly(startIndizes_activities,startIndizes_events,startScheduleCompressionFactors)
         return action
 
-    def getRandomAction(self,withScheduleCompression=False):
+    def getRandomAction(self):
         action = Action(self)
         startIndizes_activities = [random.randrange(i) for i in self.activityVariantNumbers]
         startIndizes_events = [random.randrange(i) for i in self.eventVariantNumbers]
-        if withScheduleCompression:
+        if self.withScheduleCompression:
             startScheduleCompressionFactors = [random.uniform(0.5,1) for i in self.activityVariantNumbers]
         else:
             startScheduleCompressionFactors = []
@@ -42,7 +43,7 @@ class Action:
     def saveDirectly(self,chosenVariantIndizes_activities,chosenVariantIndizes_events=[],scheduleCompressionFactors=[]):
         self.activityIndizes = chosenVariantIndizes_activities
         self.eventIndizes = chosenVariantIndizes_events
-        self.compressionFactors = scheduleCompressionFactors
+        self.scheduleCompressionFactors = scheduleCompressionFactors
 
 
     def saveIndizesCombined(self,chosenVariantIndizes,scheduleCompressionFactors=[]):
@@ -58,9 +59,11 @@ class Action:
     def __repr__(self):
         lines = "activities:"
         lines += str(self.activityIndizes)
-        lines += '\n events:'
-        lines += str(self.eventIndizes)
-        lines += '\n compressionFactors:'
-        lines += str(self.compressionFactors)
+        if self.actionSpace.noEvents>0:
+            lines += '\n events:'
+            lines += str(self.eventIndizes)
+        if self.actionSpace.withScheduleCompression:
+            lines += '\n compressionFactors:'
+            lines += str(self.scheduleCompressionFactors)
         return lines
 
