@@ -7,12 +7,21 @@ def softmax(x):
     z=y
     #z = np.floor(y*(2**30))#ensure softmax sums up to 1
     #z = z/(2**30)
-    z[0] = 1-sum(z[1:])
+    z[0] = 1-sum(z[1:]) # ensure softmax sums up to 1
     return z
 
 def probsFromLosses(losses,exploitationFactor=10):
     # exploitationFactor ==0 equals all probs are the same
-    probs = softmax(np.array(losses) / float(min(losses)) * -1*exploitationFactor)
+    losses = np.array(losses)
+
+    #scale losses to [0 , 1]
+    min_ = float(min(losses))
+    max_ = float(max(losses))
+    losses -= min_
+    losses /= (max_ - min_)
+    losses *= -1 #higher probability to lower loss
+    #
+    probs = softmax(losses)
     return probs
 
 def pertRV(low,peak,high,g=4):
@@ -32,6 +41,7 @@ def pertRV(low,peak,high,g=4):
 
 def scheduleCompressionCostIncrease(timeFactor):
     if timeFactor >=1:
-        return 1
+        costFactor =  1
     else:
         costFactor = 560.7 * np.exp(-9.43*timeFactor)+0.955
+    return costFactor
