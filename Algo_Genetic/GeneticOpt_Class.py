@@ -107,7 +107,9 @@ class Chromosome(ActionSpace.Action):
             if random.random() < mutateProb:
                 self.activityIndizes[i] = random.randrange(self.actionSpace.activityVariantNumbers[i])
             if random.random() < mutateProb:
-                self.scheduleCompressionFactors[i] = random.uniform(0.5,1)
+                newFactor = self.scheduleCompressionFactors[i] + random.uniform(-0.1,0.1)
+                newFactor = max(min(newFactor,1),0.5)
+                self.scheduleCompressionFactors[i] = newFactor
 
         for i in range(self.actionSpace.noEvents):
             if random.random() < mutateProb:
