@@ -73,12 +73,15 @@ class Variant_Refinery(Meta_Model.Variant):
 
         competence = self.supplier.competences[self.activity.type]
         quality = 0.75 * competence.qualityEfficiency + 0.25 * averagePredecessorQuality
-        duration = int(np.ceil(self.activity.base_duration /(competence.durationEfficiency*quality**2)))
-        cost = int(np.ceil(self.activity.base_cost_per_day* duration/competence.costEfficiency**1))
+        duration = self.activity.base_duration /(competence.durationEfficiency*quality**2)
+        cost = self.activity.base_cost_per_day* duration/competence.costEfficiency**1
 
 
         duration *= compressionFactor
         cost *= commonFunctions.scheduleCompressionCostIncrease(compressionFactor)
+
+        duration = np.ceil(duration)
+        cost = np.ceil(cost)
 
         endpoint = self.activity.startpoint+duration
         self.activity.duration = duration
