@@ -46,9 +46,17 @@ class Action:
         self.scheduleCompressionFactors = scheduleCompressionFactors
 
 
+    def saveEverythingCombined(self,completeInput):
+        noCategoricalVariables = self.actionSpace.noActivities+self.actionSpace.noEvents
+        self.activityIndizes = completeInput[:self.actionSpace.noActivities].astype('int')
+        self.eventIndizes = completeInput[self.actionSpace.noActivities:noCategoricalVariables].astype('int')
+        self.scheduleCompressionFactors = completeInput[noCategoricalVariables:]
+
+
+
     def saveIndizesCombined(self,chosenVariantIndizes,scheduleCompressionFactors=[]):
-        self.activityIndizes = chosenVariantIndizes[:self.actionSpace.noActivities]
-        self.eventIndizes = chosenVariantIndizes[self.actionSpace.noActivities:]
+        self.activityIndizes = chosenVariantIndizes[:self.actionSpace.noActivities].astype('int')
+        self.eventIndizes = chosenVariantIndizes[self.actionSpace.noActivities:].astype('int')
         self.scheduleCompressionFactors = scheduleCompressionFactors
 
 

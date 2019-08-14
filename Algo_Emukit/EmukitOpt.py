@@ -1,30 +1,33 @@
 '''Model Imports'''
-from Model_Refinery import Refinery_Model
-from Model_TopSim_RollerCoaster import RollerCoaster_Model
-from Model_MIS import MIS_Model
-from Meta_Model import commonFunctions
-
-model = RollerCoaster_Model.Model_RollerCoaster()
-#model = Refinery_Model.Model_Refinery()
-#model = MIS_Model.Model_MIS()
+from Meta_Model.generateModel import generateModel
+from Meta_Model.Meta_Model_options import Meta_Model_options
+from Meta_Model import ActionSpace
 
 
 '''Optimization imports'''
 ### Necessary imports
 import tensorflow as tf
 import GPy
+import time
 import numpy as np
-
 from emukit.core import  ParameterSpace, CategoricalParameter, OneHotEncoding
 from emukit.model_wrappers import GPyModelWrapper
 from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 
 
+'''generate Model with its options'''
+modelOptions = Meta_Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions.probabilistic = True
+modelOptions.withScheduleCompression=True
+model = generateModel(modelOptions)
+
+
 '''define parameter space'''
-noActivityVariants = model.getVariantNumbers()
+actionSpace = model.getActionSpace()
+action = ActionSpace.Action(actionSpace)
 parameterList = []
 encodingList = []
-for index,varNumber in enumerate(noActivityVariants):
+for index,varNumber in enumerate(actionSpace.VariantNumbers()):
     options = range(varNumber)
     encoding = OneHotEncoding(options)
     encodingList.append(encoding)
@@ -50,7 +53,8 @@ def emukit_friendly_objective_function(input_rows):
     losses = []
     for row in input_rows:
         chosenOptionIndizes = encodingToInteger(row, encodingList)
-        loss = model.simulate_returnLoss(chosenOptionIndizes)
+        action.saveIndizesCombined(chosenOptionIndizes)
+        loss = model.simulate_returnLoss(action)
         print('loss: ' + str(loss))
         losses.append([loss])
     return np.array(losses)
@@ -68,7 +72,11 @@ rf_model = RandomForest(X_init, Y_init)
 
 '''start finding optimimum'''
 loop = BayesianOptimizationLoop(space,rf_model)
+
+start = time.time()
 loop.run_loop(emukit_friendly_objective_function, 10)
+end = time.time()
+print('time needed: ' + str(end-start))
 
 '''get results'''
 bestIteration = np.argmin(loop.loop_state.Y)
