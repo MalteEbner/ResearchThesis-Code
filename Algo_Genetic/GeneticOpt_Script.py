@@ -5,7 +5,7 @@ from Meta_Model.Meta_Model_options import Meta_Model_options
 
 
 '''generate Model with its options'''
-modelOptions = Meta_Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Meta_Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=True
 model = generateModel(modelOptions)
