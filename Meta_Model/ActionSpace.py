@@ -1,4 +1,6 @@
 import random
+from keras.utils import to_categorical
+from keras.backend import expand_dims
 
 class ActionSpace:
     def __init__(self,activityVariantNumbers,eventVariantNumbers=[],withScheduleCompression=False):
@@ -45,19 +47,33 @@ class Action:
         self.eventIndizes = chosenVariantIndizes_events
         self.scheduleCompressionFactors = scheduleCompressionFactors
 
-
     def saveEverythingCombined(self,completeInput):
         noCategoricalVariables = self.actionSpace.noActivities+self.actionSpace.noEvents
         self.activityIndizes = completeInput[:self.actionSpace.noActivities].astype('int')
         self.eventIndizes = completeInput[self.actionSpace.noActivities:noCategoricalVariables].astype('int')
         self.scheduleCompressionFactors = completeInput[noCategoricalVariables:]
 
-
-
     def saveIndizesCombined(self,chosenVariantIndizes,scheduleCompressionFactors=[]):
         self.activityIndizes = chosenVariantIndizes[:self.actionSpace.noActivities].astype('int')
         self.eventIndizes = chosenVariantIndizes[self.actionSpace.noActivities:].astype('int')
         self.scheduleCompressionFactors = scheduleCompressionFactors
+
+
+    def getOneHotCoded(self):
+        action = []
+        for index, noVariants in zip(self.activityIndizes,self.actionSpace.activityVariantNumbers):
+            encoding = to_categorical(index,num_classes=noVariants)
+            encoding = expand_dims(encoding,axis=0)
+            encoding = expand_dims(encoding, axis=0)
+            action.append(encoding)
+        for index, noVariants in zip(self.eventIndizes,self.actionSpace.eventVariantNumbers):
+            encoding = to_categorical(index,num_classes=noVariants)
+            encoding = expand_dims(encoding, axis=0)
+            encoding = expand_dims(encoding, axis=0)
+            action.append(encoding)
+        scheduleCompressionFactors = [[i] for i in self.scheduleCompressionFactors]
+        action += list(self.scheduleCompressionFactors)
+        return action
 
 
     def eventIndizesAsDict(self,orderedEventIDs):
