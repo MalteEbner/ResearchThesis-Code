@@ -45,3 +45,4 @@ def scheduleCompressionCostIncrease(timeFactor):
     else:
         costFactor = 560.7 * np.exp(-9.43*timeFactor)+0.955
     return costFactor
+
