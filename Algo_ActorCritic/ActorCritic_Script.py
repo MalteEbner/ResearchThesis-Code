@@ -28,21 +28,20 @@ baselineUpdateFactor = 0.1
 print('baseline:' + str(baseline))
 
 '''hyperparams'''
-learningRate = -1
-batchSize = 128
+batchSize = 1
 
 '''run actor-critic algorithm'''
 start = time.time()
 for i in range(1000):
     #sample actions
-    nextAction = policy.getNextAction()
+    actions = [policy.getNextAction() for i in range(batchSize)]
     #appy action on model, sample 'reward' (loss)
-    loss = model.simulate_returnLoss(nextAction)
+    losses = [model.simulate_returnLoss(action) for action in actions]
     #update policy
-    advantage = (baseline-loss)/baseVariance
-    policy.updateModel(nextAction,advantage)
+    advantages = (baseline-losses)/baseVariance
+    policy.updateModel(actions,advantages)
     #update baseline
-    baseline += baselineUpdateFactor*(loss-baseline)
+    baseline += baselineUpdateFactor*(np.mean(losses)-baseline)
 
     #print best loss
     if i % 100 == 0:
