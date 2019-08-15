@@ -82,7 +82,8 @@ class Policy:
         variables = np.array(variableListList)
         outputs = []
         for i in range(len(VariantNumbers)):
-            encoding = to_categorical(variables[:,i])
+            noVariants = VariantNumbers[i]
+            encoding = to_categorical(variables[:,i],num_classes=noVariants)
             encoding = expand_dims(encoding,axis=1)
             outputs.append(encoding)
         if actionList[0].actionSpace.withScheduleCompression:
