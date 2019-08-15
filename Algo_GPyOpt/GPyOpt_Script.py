@@ -13,7 +13,7 @@ import GPyOpt
 
 
 '''generate Model with its options'''
-modelOptions = Meta_Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Meta_Model_options('RollerCoaster') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)
@@ -49,9 +49,9 @@ myBopt = GPyOpt.methods.BayesianOptimization(f=objective_function,              
                                              initial_design_numdata = 5,   # Number data initial design
                                              acquisition_type='EI',        # Expected Improvement
                                              exact_feval = True)           # True evaluations, no sample noise
-
+print('starting optimization')
 start = time.time()
-myBopt.run_optimization(max_iter=100,eps=0)
+myBopt.run_optimization(max_iter=100,eps=-1,verbosity=True)
 end = time.time()
 print('time needed: ' + str(end-start))
 
