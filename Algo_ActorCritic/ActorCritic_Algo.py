@@ -4,6 +4,8 @@ from keras.backend import constant
 from Meta_Model import ActionSpace
 import numpy as np
 from tensorflow.keras import optimizers
+from keras.utils import to_categorical
+from keras.backend import expand_dims
 
 
 
@@ -62,13 +64,33 @@ class Policy:
         self.model = model
 
 
-    def updateModel(self,outputAction,updateWeight,input=0):
+    def updateModel(self,outputActions,updateWeights,input=0):
+        noSamples = len(outputActions)
+        noOutputs = int(outputActions[0].actionSpace.NoAllVariables())
         if input == 0:
-            input = np.ones((1,1,1))
-        output = outputAction.getOneHotCoded()
-        sampleWeight1 = [np.ones((1))*updateWeight]
-        sampleWeight2 = sampleWeight1 * len(output)
-        self.model.fit([input],output,sample_weight=sampleWeight2,verbose=False)
+            inputs = np.ones((noSamples,1,1))
+        outputs = self.oneHotEncode(outputActions)
+        sampleWeights =[updateWeights]*noOutputs
+        self.model.fit([inputs],outputs,sample_weight=sampleWeights,verbose=False)
+
+
+    def oneHotEncode(self,actionList):
+        noActivities = actionList[0].actionSpace.noActivities
+        VariantNumbers = actionList[0].actionSpace.VariantNumbers()
+        variableListList = [
+        np.concatenate((action.activityIndizes, action.eventIndizes, action.scheduleCompressionFactors)) for action in actionList]
+        variables = np.array(variableListList)
+        outputs = []
+        for i in range(len(VariantNumbers)):
+            encoding = to_categorical(variables[:,i])
+            encoding = expand_dims(encoding,axis=1)
+            outputs.append(encoding)
+        if actionList[0].actionSpace.withScheduleCompression:
+            for i in range(noActivities):
+                encoding = variables[:,len(VariantNumbers)+i]
+                outputs.append(encoding)
+        return outputs
+
 
 
     def getAction(self,kind,input):

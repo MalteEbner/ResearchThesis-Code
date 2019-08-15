@@ -13,6 +13,12 @@ class ActionSpace:
     def VariantNumbers(self):
         return self.activityVariantNumbers + self.eventVariantNumbers
 
+    def NoAllVariables(self):
+        noVars = self.noActivities+self.noEvents
+        if self.withScheduleCompression:
+            noVars += self.noActivities
+        return noVars
+
     def getZeroAction(self):
         action = Action(self)
         startIndizes_activities = [int(0) for i in self.activityVariantNumbers]
