@@ -5,7 +5,8 @@ from Meta_Model import ActionSpace
 import numpy as np
 from tensorflow.keras import optimizers
 from keras.utils import to_categorical
-from keras.backend import expand_dims
+from keras.backend import expand_dims, set_value
+from keras.initializers import Constant
 
 
 
@@ -50,16 +51,17 @@ class Policy:
             outputs.append(variantLayer)
             losses.append('categorical_crossentropy')
         for i in range(noRealOutputs):
-            scheduleCompressionLayer = Dense(1)(x)
+            scheduleCompressionLayer = Dense(1,bias_initializer=Constant(value=0.75))(x)
             outputs.append(scheduleCompressionLayer)
             losses.append('mean_squared_error')
 
         #define model
         model = Model(inputs=inputs,outputs=outputs)
-        sgd = optimizers.SGD(lr=0.1)
+        sgd = optimizers.SGD(lr=0.2)
         model.compile(optimizer=sgd,
                       loss=losses,
                       metrics=['accuracy'])
+
 
         self.model = model
 
@@ -67,11 +69,12 @@ class Policy:
     def updateModel(self,outputActions,updateWeights,input=0):
         noSamples = len(outputActions)
         noOutputs = int(outputActions[0].actionSpace.NoAllVariables())
+        noScheduleCompressionFactors = len(outputActions[0].scheduleCompressionFactors)
         if input == 0:
             inputs = np.ones((noSamples,1,1))
         outputs = self.oneHotEncode(outputActions)
-        sampleWeights =[updateWeights]*noOutputs
-        self.model.fit([inputs],outputs,sample_weight=sampleWeights,verbose=False)
+        sampleWeights =[updateWeights]*(noOutputs-noScheduleCompressionFactors) + [np.maximum(updateWeights,0)]*noScheduleCompressionFactors
+        self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
 
 
     def oneHotEncode(self,actionList):
@@ -122,7 +125,7 @@ class Policy:
         scheduleCompressionFactors = output[self.actionSpace.noActivities+self.actionSpace.noEvents:]
         scheduleCompressionFactors = [i[0] for i in scheduleCompressionFactors]
         if kind == 'random':
-            scheduleCompressionFactors += np.random.normal(0,0.5,len(scheduleCompressionFactors))
+            scheduleCompressionFactors += np.random.uniform(-0.1,0.1,len(scheduleCompressionFactors))
         scheduleCompressionFactors = np.maximum(scheduleCompressionFactors,0.5)
         scheduleCompressionFactors = np.minimum(scheduleCompressionFactors,1)
 
