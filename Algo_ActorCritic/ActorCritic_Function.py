@@ -5,15 +5,19 @@ from Meta_Model.Meta_Model_options import Meta_Model_options
 import numpy as np
 from math import log
 
-def actorCritic_RunAlgo(model, verbose = 1, hyperparams=0):
+
+def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
     if verbose >=1:
         print("NEW: run of actor critic algo")
+    if hyperparams==0:
+        hyperparams = {}
 
-    '''generate Model with its options'''
-    modelOptions = Meta_Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-    modelOptions.probabilistic = False
-    modelOptions.withScheduleCompression=True
-    model = generateModel(modelOptions)
+    if model == 0:
+        '''generate Model with its options'''
+        modelOptions = Meta_Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+        modelOptions.probabilistic = False
+        modelOptions.withScheduleCompression=False
+        model = generateModel(modelOptions)
 
 
     '''define policy'''
@@ -34,8 +38,8 @@ def actorCritic_RunAlgo(model, verbose = 1, hyperparams=0):
     verboseNoIterations = int(128/batchSize)
     baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.1)
 
-    explorationFactor = hyperparams.get('explorationFactor',0.1)
-    explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.98)
+    explorationFactor = hyperparams.get('explorationFactor',0.9)
+    explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.99)
 
     learningRate = hyperparams.get('learningRate',1)
     learningRateDecayFactor = hyperparams.get('learningRateDecayFactor',0.98)
@@ -81,7 +85,7 @@ def actorCritic_RunAlgo(model, verbose = 1, hyperparams=0):
         performanceOfBest = str(model.simulateMean(best))
         print("performance of best: " + performanceOfBest)
         print("Finished")
-    
+
     return performanceOfBest[0]
 
 

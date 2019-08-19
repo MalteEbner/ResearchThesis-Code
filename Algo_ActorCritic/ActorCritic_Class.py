@@ -111,20 +111,29 @@ class Policy:
         output = outputList
 
         activityVariantIndizes = []
-        for i in range(self.actionSpace.noActivities):
+        for i ,varNum in enumerate(self.actionSpace.activityVariantNumbers):
             variantProbs = output[i]
-            if kind == 'random':
-                chosenVariant = np.random.choice(range(len(variantProbs)),1,p=variantProbs)[0]
-            elif kind == 'best':
-                chosenVariant = np.argmax(variantProbs)
+            if varNum>1:
+                if kind == 'random':
+                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
+                    chosenVariant = np.random.choice(range(len(variantProbs)),1,p=variantProbs)[0]
+                elif kind == 'best':
+                    chosenVariant = np.argmax(variantProbs)
+            else:
+                chosenVariant = 0
             activityVariantIndizes.append(chosenVariant)
+
         eventVariantIndizes = []
-        for i in range(self.actionSpace.noEvents):
+        for i ,varNum in enumerate(self.actionSpace.eventVariantNumbers):
             variantProbs = output[i+self.actionSpace.noActivities]
-            if kind == 'random':
-                chosenVariant = np.random.choice(range(len(variantProbs)),1,p=variantProbs)[0]
-            elif kind == 'best':
-                chosenVariant = np.argmax(variantProbs)
+            if varNum>1:
+                if kind == 'random':
+                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sum up to 1
+                    chosenVariant = np.random.choice(range(len(variantProbs)),1,p=variantProbs)[0]
+                elif kind == 'best':
+                    chosenVariant = np.argmax(variantProbs)
+            else:
+                chosenVariant = 0
             eventVariantIndizes.append(chosenVariant)
 
         scheduleCompressionFactors = output[self.actionSpace.noActivities+self.actionSpace.noEvents:]
