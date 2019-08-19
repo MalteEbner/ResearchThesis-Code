@@ -1,5 +1,7 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense
+from tensorflow.keras.layers import Input, Dense, Lambda
+from tensorflow.math import maximum as tf_maximum
+from tensorflow.math import minimum as tf_minimum
 from keras.backend import constant
 from Meta_Model import ActionSpace
 import numpy as np
@@ -40,24 +42,27 @@ class Policy:
         #input layer
         inputs = Input(shape=self.inputShape)
         #intermediate layers
-        x = Dense(1, activation='relu')(inputs)
-        #x = Dense(64, activation='relu')(x)
+        intLayer = Dense(1, activation='relu')(inputs)
+        #intLayer = Dense(64, activation='relu')(intLayer)
 
         #output layers with losses
         outputs = []
         losses = []
         for noVariants in categoricalOutputs:
-            variantLayer = Dense(noVariants,activation='softmax')(x)
+            variantLayer = Dense(noVariants,activation='softmax')(intLayer)
             outputs.append(variantLayer)
             losses.append('categorical_crossentropy')
         for i in range(noRealOutputs):
-            scheduleCompressionLayer = Dense(1,bias_initializer=Constant(value=0.75))(x)
-            outputs.append(scheduleCompressionLayer)
+            #output should range in 0.4 and 1.1
+            scheduleCompressionLayer = Dense(1,bias_initializer=Constant(value=0.75))(intLayer)
+            scheduleCompressionLayer2 = Lambda(lambda x: tf_maximum(x,0.5))(scheduleCompressionLayer)
+            scheduleCompressionLayer3 = Lambda(lambda x: tf_minimum(x,1))(scheduleCompressionLayer2)
+            outputs.append(scheduleCompressionLayer3)
             losses.append('mean_squared_error')
 
         #define model
         model = Model(inputs=inputs,outputs=outputs)
-        sgd = optimizers.SGD(lr=0.2)
+        sgd = optimizers.SGD(lr=1)
         model.compile(optimizer=sgd,
                       loss=losses,
                       metrics=['accuracy'])
@@ -102,7 +107,7 @@ class Policy:
             input = np.ones((1,1,1))
         #output is a probability distribution for all categorical outputs
         outputPrediction = self.model.predict(input)
-        outputList = [i[0][0] for i in outputPrediction]
+        outputList = [np.squeeze(i) for i in outputPrediction]
         output = outputList
 
         activityVariantIndizes = []
@@ -123,9 +128,9 @@ class Policy:
             eventVariantIndizes.append(chosenVariant)
 
         scheduleCompressionFactors = output[self.actionSpace.noActivities+self.actionSpace.noEvents:]
-        scheduleCompressionFactors = [i[0] for i in scheduleCompressionFactors]
         if kind == 'random':
             scheduleCompressionFactors += np.random.uniform(-0.1,0.1,len(scheduleCompressionFactors))
+        scheduleCompressionFactors = [i.item(0) for i in scheduleCompressionFactors]
         scheduleCompressionFactors = np.maximum(scheduleCompressionFactors,0.5)
         scheduleCompressionFactors = np.minimum(scheduleCompressionFactors,1)
 
