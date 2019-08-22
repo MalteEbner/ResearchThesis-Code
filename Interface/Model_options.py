@@ -1,7 +1,7 @@
 
 
 
-class Meta_Model_options():
+class Model_options():
     def __init__(self, type, probabilistic=False, withEvents=False, withScheduleCompression = False, RLcapable=False):
         self.type = type
         self.probabilistic = probabilistic

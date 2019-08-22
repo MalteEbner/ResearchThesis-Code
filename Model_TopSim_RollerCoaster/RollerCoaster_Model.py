@@ -1,10 +1,10 @@
 from Model_TopSim_RollerCoaster import RollerCoaster_LoadSchedule
 from Model_TopSim_RollerCoaster import RollerCoaster_LossFunction
-from Meta_Model import Meta_Model
-from Meta_Model import commonFunctions
+from Model_general import Model_general
+from Model_general import commonFunctions
 
 
-class Model_RollerCoaster(Meta_Model.MetaModel):
+class Model_RollerCoaster(Model_general.Model_general):
     def __init__(self,modelOptions):
         filename = '../Model_TopSim_RollerCoaster/RollerCoaster_Model_Definition.xlsx'
         activities = RollerCoaster_LoadSchedule.loadActivityData(filename,modelOptions)
@@ -35,14 +35,14 @@ class Model_RollerCoaster(Meta_Model.MetaModel):
             for event in self.events.values():
                 event.resetFunction()
 
-class Activity_RollerCoaster(Meta_Model.Activity):
+class Activity_RollerCoaster(Model_general.Activity):
     def __init__(self,modelOptions,variants,name,activityID):
 
         self.name = name
         self.predecessors =[]
         super().__init__([],variants,activityID)
 
-class Variant_RollerCoaster(Meta_Model.Variant):
+class Variant_RollerCoaster(Model_general.Variant):
     def __init__(self,modelOptions,base_duration,base_cost,technology,quality,risk):
         self.modelOptions = modelOptions
         self.base_duration = base_duration

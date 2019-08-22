@@ -1,11 +1,11 @@
 from Algo_Genetic import GeneticOpt_Class
 from Interface.generateModel import generateModel
 import time
-from Meta_Model.Meta_Model_options import Meta_Model_options
+from Interface.Model_options import Model_options
 
 
 '''generate Model with its options'''
-modelOptions = Meta_Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=True
 model = generateModel(modelOptions)

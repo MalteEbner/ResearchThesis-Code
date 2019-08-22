@@ -1,6 +1,6 @@
 '''Model Imports'''
 from Interface.generateModel import generateModel
-from Meta_Model.Meta_Model_options import Meta_Model_options
+from Interface.Model_options import Model_options
 from Interface import ActionSpace
 
 '''Optimization imports'''
@@ -12,7 +12,7 @@ from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 
 
 '''generate Model with its options'''
-modelOptions = Meta_Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=True
 model = generateModel(modelOptions)
@@ -49,7 +49,7 @@ def emukit_friendly_objective_function(input_rows):
     losses = []
     for row in input_rows:
         chosenOptionIndizes = encodingToInteger(row, encodingList)
-        action.saveIndizesCombined(chosenOptionIndizes)
+        action.saveIndizesCombined(np.asarray(chosenOptionIndizes))
         loss = model.simulate_returnLoss(action)
         print('loss: ' + str(loss))
         losses.append([loss])

@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from Meta_Model import commonFunctions
+from Model_general import commonFunctions
 from Interface import ActionSpace
 
 
