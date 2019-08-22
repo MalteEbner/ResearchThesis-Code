@@ -1,9 +1,9 @@
 from Model_MIS import MIS_LoadData
-from Meta_Model import Meta_Model
+from Model_general import Model_general
 import random
 
 
-class Model_MIS(Meta_Model.MetaModel):
+class Model_MIS(Model_general.Model_general):
     def __init__(self,modelOptions):
         filename = '../Model_MIS/MIS_PM.xlsx'
         activities, events = MIS_LoadData.loadData(filename)
@@ -159,13 +159,13 @@ class Model_MIS(Meta_Model.MetaModel):
 
 
 
-class Activity_MIS(Meta_Model.Activity):
+class Activity_MIS(Model_general.Activity):
     def __init__(self,activityID,variants,name):
         self.name = name
         self.predecessors =[]
         super().__init__([],variants,activityID)
 
-class Variant_MIS(Meta_Model.Variant):
+class Variant_MIS(Model_general.Variant):
     def __init__(self,base_duration,base_cost):
         self.base_duration = base_duration
         self.duration = base_duration

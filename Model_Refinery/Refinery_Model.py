@@ -1,10 +1,10 @@
 from Model_Refinery import Refinery_Model_suppliers, Refinery_Model_ProjectNetwork
-from Meta_Model import Meta_Model
+from Model_general import Model_general
 import numpy as np
-from Meta_Model import commonFunctions
+from Model_general import commonFunctions
 
 
-class Model_Refinery(Meta_Model.MetaModel):
+class Model_Refinery(Model_general.Model_general):
     def __init__(self,modelOptions):
         filename = '../Model_Refinery/SimGame translated - Andre Heleno.xlsx'
         self.suppliers = Refinery_Model_suppliers.loadSupplierData(filename)
@@ -24,7 +24,7 @@ class Model_Refinery(Meta_Model.MetaModel):
 Meta-Model for the refinery
 '''
 
-class Activity_refinery(Meta_Model.Activity):
+class Activity_refinery(Model_general.Activity):
     def __init__(self,predecessors,suppliers,type,base_duration,base_cost_per_day,name,activity_ID):
 
         self.name = name
@@ -57,7 +57,7 @@ class Compentence():
         self.costEfficiency = costEfficiency
         self.qualityEfficiency = qualityEfficiency
 
-class Variant_Refinery(Meta_Model.Variant):
+class Variant_Refinery(Model_general.Variant):
     def __init__(self,supplier):
         self.supplier = supplier
 

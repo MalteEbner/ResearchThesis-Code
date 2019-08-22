@@ -1,6 +1,6 @@
 import re
 from Model_MIS import MIS_Model
-from Meta_Model import Meta_Model
+from Model_general import Model_general
 
 class MIS_conditionStringsToLambdas():
     @staticmethod
@@ -70,7 +70,7 @@ class MIS_conditionStringsToLambdas():
             return dict[comparisonString]
 
 
-class Event_MIS(Meta_Model.Event):
+class Event_MIS(Model_general.Event):
     def __init__(self,eventID,conditionString,description):
         self.eventID = eventID
         self.description = description
@@ -101,7 +101,7 @@ class Event_MIS(Meta_Model.Event):
 
 
 
-class EventOption_MIS(Meta_Model.EventOption):
+class EventOption_MIS(Model_general.EventOption):
     def __init__(self,ifCondString,thenDoString,elseDoString,description,comment):
         self.description = description
         self.comment = comment

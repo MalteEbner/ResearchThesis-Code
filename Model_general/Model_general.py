@@ -2,7 +2,7 @@ import numpy as np
 from Interface import ActionSpace
 
 
-class MetaModel:
+class Model_general:
 
     def __init__(self, activities, defaultLossFunction,calcPerformanceFunction, modelOptions, events = []):
         self.modelOptions = modelOptions

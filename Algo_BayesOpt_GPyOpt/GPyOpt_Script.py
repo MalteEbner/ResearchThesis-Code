@@ -1,6 +1,6 @@
 '''Model Imports'''
 from Interface.generateModel import generateModel
-from Meta_Model.Meta_Model_options import Meta_Model_options
+from Interface.Model_options import Model_options
 from Interface import ActionSpace
 
 '''Optimization imports'''
@@ -10,7 +10,7 @@ import GPyOpt
 
 
 '''generate Model with its options'''
-modelOptions = Meta_Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)

@@ -1,19 +1,28 @@
+'''Model Imports'''
+from Interface.generateModel import generateModel
+from Interface.Model_options import Model_options
+from Interface import ActionSpace
+
 from hyperopt import fmin, tpe, rand, hp, STATUS_OK, Trials
 from Model_Refinery import Refinery_Model
 from Model_TopSim_RollerCoaster import RollerCoaster_Model
 from Model_MIS import MIS_Model
-from Meta_Model import commonFunctions
+from Model_general import commonFunctions
 
-#model = RollerCoaster_Model.Model_RollerCoaster()
-#model = Refinery_Model.Model_Refinery()
-model = MIS_Model.Model_MIS()#doesn't work because of too many variables
+
+
+'''generate Model with its options'''
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions.probabilistic = True
+modelOptions.withScheduleCompression=True
+model = generateModel(modelOptions)
 
 
 '''
 define search spaces
 '''
 
-noActivityVariants = model.getVariantNumbers()
+noActivityVariants = model.getActionSpace().VariantNumbers()
 space_equalChoice = {}
 for num in range(len(noActivityVariants)):
     varName = "act_ID_"+str(num)
