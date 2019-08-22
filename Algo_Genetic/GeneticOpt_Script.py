@@ -1,11 +1,11 @@
 from Algo_Genetic import GeneticOpt_Class
-from Meta_Model.generateModel import generateModel
+from Interface.generateModel import generateModel
 import time
 from Meta_Model.Meta_Model_options import Meta_Model_options
 
 
 '''generate Model with its options'''
-modelOptions = Meta_Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Meta_Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=True
 model = generateModel(modelOptions)
@@ -23,9 +23,10 @@ print(model.simulateMean(startChromosome))
 
 '''run genetic algorithm'''
 start = time.time()
-for i in range(100):
+for i in range(3600):
     bestAction = genePool.generateNewPop()
-    print(str(i) + ":  " + str(model.simulate(bestAction)))
+    if i%10 == 0:
+        print(str(i) + ":  " + str(model.simulate(bestAction)) + ' time:' + str(time.time()-start))
 end = time.time()
 print('time needed: ' + str(end-start))
 

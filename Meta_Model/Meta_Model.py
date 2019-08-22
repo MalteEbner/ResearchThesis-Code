@@ -1,9 +1,5 @@
 import numpy as np
-from Meta_Model import Meta_Model_options
-from Meta_Model import ActionSpace
-
-import copy
-
+from Interface import ActionSpace
 
 
 class MetaModel:
@@ -29,7 +25,7 @@ class MetaModel:
     def getActionSpace(self):
         variantNumsActivities = [len(act.variants) for act in self.activities]
         variantNumsEvents = [len(self.events[eventID].eventOptions) for eventID in self.orderedEventIDs()]
-        actionSpace = ActionSpace.ActionSpace(variantNumsActivities,variantNumsEvents,self.modelOptions.withScheduleCompression)
+        actionSpace = ActionSpace.ActionSpace(variantNumsActivities, variantNumsEvents, self.modelOptions.withScheduleCompression)
         return actionSpace
 
 
