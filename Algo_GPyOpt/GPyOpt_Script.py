@@ -1,20 +1,17 @@
 '''Model Imports'''
-from Meta_Model.generateModel import generateModel
+from Interface.generateModel import generateModel
 from Meta_Model.Meta_Model_options import Meta_Model_options
-from Meta_Model import ActionSpace
-
+from Interface import ActionSpace
 
 '''Optimization imports'''
 ### Necessary imports
-import tensorflow as tf
-import GPy
 import time
 import GPyOpt
 
 
 '''generate Model with its options'''
-modelOptions = Meta_Model_options('RollerCoaster') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = True
+modelOptions = Meta_Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)
 
@@ -51,7 +48,7 @@ myBopt = GPyOpt.methods.BayesianOptimization(f=objective_function,              
                                              exact_feval = True)           # True evaluations, no sample noise
 print('starting optimization')
 start = time.time()
-myBopt.run_optimization(max_iter=100,eps=-1,verbosity=True)
+myBopt.run_optimization(max_iter=600,eps=-1,verbosity=True)
 end = time.time()
 print('time needed: ' + str(end-start))
 

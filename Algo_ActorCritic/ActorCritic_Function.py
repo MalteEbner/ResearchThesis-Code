@@ -1,9 +1,8 @@
 from Algo_ActorCritic import ActorCritic_Class
-from Meta_Model.generateModel import generateModel
+from Interface.generateModel import generateModel
 import time
 from Meta_Model.Meta_Model_options import Meta_Model_options
 import numpy as np
-from math import log
 
 
 def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
@@ -14,9 +13,9 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
 
     if model == 0:
         '''generate Model with its options'''
-        modelOptions = Meta_Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+        modelOptions = Meta_Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
         modelOptions.probabilistic = False
-        modelOptions.withScheduleCompression=False
+        modelOptions.withScheduleCompression=True
         model = generateModel(modelOptions)
 
 
@@ -33,7 +32,7 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
 
     '''hyperparams'''
     batchSize = hyperparams.get('batchSize',8)
-    noSamples = hyperparams.get('noSamples',8192)
+    noSamples = hyperparams.get('noSamples',80000)
     noIterations = int(noSamples/batchSize)
     verboseNoIterations = int(128/batchSize)
     baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.1)
@@ -51,12 +50,12 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
         actions = [policy.getNextAction() for i in range(batchSize)]
         #appy action on model, sample 'reward' (loss)
         losses = [model.simulate_returnLoss(action) for action in actions]
+        #update baseline
+        baseline += baselineUpdateFactor*(np.mean(losses)-baseline)
         #update policy
         advantages = (baseline-losses)/baseStd
         advantages -= explorationFactor #keep exploring
         policy.updateModel(actions,advantages)
-        #update baseline
-        baseline += baselineUpdateFactor*(np.mean(losses)-baseline)
 
         #update rates
         explorationFactor *= explorationDecayFactor
@@ -69,7 +68,7 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
             bestAction = policy.getBestAction()
             loss = model.simulate_returnLoss(bestAction)
             print(str(i) + ":  loss:" + str(loss) + '  baseline:' + str(baseline) + ' time: ' + str(time.time()-start))
-        if verbose >= 2 and ( i% (verboseNoIterations*5) == 1 or i == noIterations - 1):
+        if False and verbose >= 2 and ( i% (verboseNoIterations*5) == 1 or i == noIterations - 1):
             prediction = policy.model.predict(np.ones((1, 1, 1)))
             print('prediction:' + str(prediction))
 

@@ -1,7 +1,8 @@
 import random
 import numpy as np
 from Meta_Model import commonFunctions
-from Meta_Model import ActionSpace
+from Interface import ActionSpace
+
 
 class GeneticOpt():
 

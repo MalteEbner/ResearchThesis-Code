@@ -1,17 +1,13 @@
 '''Model Imports'''
-from Meta_Model.generateModel import generateModel
+from Interface.generateModel import generateModel
 from Meta_Model.Meta_Model_options import Meta_Model_options
-from Meta_Model import ActionSpace
-
+from Interface import ActionSpace
 
 '''Optimization imports'''
 ### Necessary imports
-import tensorflow as tf
-import GPy
 import time
 import numpy as np
 from emukit.core import  ParameterSpace, CategoricalParameter, OneHotEncoding
-from emukit.model_wrappers import GPyModelWrapper
 from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 
 

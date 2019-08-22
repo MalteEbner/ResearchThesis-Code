@@ -2,10 +2,6 @@ from Model_TopSim_RollerCoaster import RollerCoaster_LoadSchedule
 from Model_TopSim_RollerCoaster import RollerCoaster_LossFunction
 from Meta_Model import Meta_Model
 from Meta_Model import commonFunctions
-from Meta_Model import ActionSpace
-
-
-import numpy as np
 
 
 class Model_RollerCoaster(Meta_Model.MetaModel):
