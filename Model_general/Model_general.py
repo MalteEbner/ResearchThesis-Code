@@ -4,7 +4,7 @@ from Interface import ActionSpace
 
 class Model_general:
 
-    def __init__(self, activities, defaultLossFunction,calcPerformanceFunction, modelOptions, events = []):
+    def __init__(self, activities, defaultLossFunction, calcPerformanceFunction, modelOptions, events = []):
         self.modelOptions = modelOptions
         self.events = events
         self.activities = activities # activities are a list
