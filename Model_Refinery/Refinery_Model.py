@@ -21,7 +21,7 @@ class Model_Refinery(Model_general.Model_general):
 
 
 '''
-Meta-Model for the refinery
+Model for the refinery
 '''
 
 class Activity_refinery(Model_general.Activity):
@@ -84,6 +84,7 @@ class Variant_Refinery(Model_general.Variant):
         cost = np.ceil(cost)
 
         endpoint = self.activity.startpoint+duration
+
         self.activity.duration = duration
         self.activity.cost = cost
         self.activity.quality = quality
