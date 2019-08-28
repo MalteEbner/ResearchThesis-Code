@@ -70,7 +70,7 @@ class Policy:
         self.model = model
 
 
-    def updateModel(self,outputActions,updateWeights,input=0):
+    def update(self,outputActions,updateWeights,input=0):
         noSamples = len(outputActions)
         noOutputs = int(outputActions[0].actionSpace.NoAllVariables())
         noScheduleCompressionFactors = len(outputActions[0].scheduleCompressionFactors)
@@ -147,7 +147,7 @@ class Policy:
         newAction.saveDirectly(activityVariantIndizes,eventVariantIndizes,scheduleCompressionFactors)
         return newAction
 
-    def getNextAction(self,input=0):
+    def sampleAction(self,input=0):
         nextAction = self.getAction('random',input)
         return nextAction
 
