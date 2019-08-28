@@ -47,7 +47,7 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
     start = time.time()
     for i in range(noIterations):
         #sample actions
-        actions = [policy.getNextAction() for i in range(batchSize)]
+        actions = [policy.sampleAction() for i in range(batchSize)]
         #appy action on model, sample 'reward' (loss)
         losses = [model.simulate_returnLoss(action) for action in actions]
         #update baseline
@@ -55,7 +55,7 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
         #update policy
         advantages = (baseline-losses)/baseStd
         advantages -= explorationFactor #keep exploring
-        policy.updateModel(actions,advantages)
+        policy.update(actions,advantages)
 
         #update rates
         explorationFactor *= explorationDecayFactor
