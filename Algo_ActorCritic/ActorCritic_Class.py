@@ -5,9 +5,10 @@ from tensorflow.math import minimum as tf_minimum
 from Interface import ActionSpace
 import numpy as np
 from tensorflow.keras import optimizers
-from keras.utils import to_categorical
-from keras.backend import expand_dims
 from keras.initializers import Constant
+from tensorflow.keras.utils import plot_model
+from Algo_ActorCritic import ActorCritic_general
+
 
 
 
@@ -30,13 +31,6 @@ class Policy:
 
 
     def defineModel(self):
-        categoricalOutputs = self.actionSpace.VariantNumbers()
-        if self.actionSpace.withScheduleCompression:
-            noRealOutputs = self.actionSpace.noActivities
-        else:
-            noRealOutputs = 0
-
-
         '''Model definition of neural network'''
         #input layer
         inputs = Input(shape=self.inputShape)
@@ -44,20 +38,8 @@ class Policy:
         intLayer = Dense(1, activation='relu')(inputs)
         #intLayer = Dense(64, activation='relu')(intLayer)
 
-        #output layers with losses
-        outputs = []
-        losses = []
-        for noVariants in categoricalOutputs:
-            variantLayer = Dense(noVariants,activation='softmax')(intLayer)
-            outputs.append(variantLayer)
-            losses.append('categorical_crossentropy')
-        for i in range(noRealOutputs):
-            #output should range in 0.4 and 1.1
-            scheduleCompressionLayer = Dense(1,bias_initializer=Constant(value=0.75))(intLayer)
-            scheduleCompressionLayer2 = Lambda(lambda x: tf_maximum(x,0.5))(scheduleCompressionLayer)
-            scheduleCompressionLayer3 = Lambda(lambda x: tf_minimum(x,1))(scheduleCompressionLayer2)
-            outputs.append(scheduleCompressionLayer3)
-            losses.append('mean_squared_error')
+        #define output layer
+        outputs,losses = ActorCritic_general.generateOutputLayer(self.actionSpace,intLayer)
 
         #define model
         model = Model(inputs=inputs,outputs=outputs)
@@ -69,6 +51,9 @@ class Policy:
 
         self.model = model
 
+        #plot model with graphviz
+        plot_model(model, to_file='model.png')
+
 
     def update(self,outputActions,updateWeights,input=0):
         noSamples = len(outputActions)
@@ -76,29 +61,9 @@ class Policy:
         noScheduleCompressionFactors = len(outputActions[0].scheduleCompressionFactors)
         if input == 0:
             inputs = np.ones((noSamples,1,1))
-        outputs = self.oneHotEncode(outputActions)
+        outputs = ActorCritic_general.oneHotEncode(outputActions)
         sampleWeights =[updateWeights]*(noOutputs-noScheduleCompressionFactors) + [np.maximum(updateWeights,0)]*noScheduleCompressionFactors
         self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
-
-
-    def oneHotEncode(self,actionList):
-        noActivities = actionList[0].actionSpace.noActivities
-        VariantNumbers = actionList[0].actionSpace.VariantNumbers()
-        variableListList = [
-        np.concatenate((action.activityIndizes, action.eventIndizes, action.scheduleCompressionFactors)) for action in actionList]
-        variables = np.array(variableListList)
-        outputs = []
-        for i in range(len(VariantNumbers)):
-            noVariants = VariantNumbers[i]
-            encoding = to_categorical(variables[:,i],num_classes=noVariants)
-            encoding = expand_dims(encoding,axis=1)
-            outputs.append(encoding)
-        if actionList[0].actionSpace.withScheduleCompression:
-            for i in range(noActivities):
-                encoding = variables[:,len(VariantNumbers)+i]
-                outputs.append(encoding)
-        return outputs
-
 
 
     def getAction(self,kind,input):
