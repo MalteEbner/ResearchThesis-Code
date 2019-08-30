@@ -7,8 +7,25 @@ from keras.utils import to_categorical
 from keras.backend import expand_dims
 import numpy as np
 
+def generatActionInputLayer(actionSpace):
+    categoricalOutputs = actionSpace.VariantNumbers()
+    if actionSpace.withScheduleCompression:
+        noRealOutputs = actionSpace.noActivities
+    else:
+        noRealOutputs = 0
+        
+    # input Layers
+    inputs = []
+    for noVariants in categoricalOutputs:
+        variantLayer = Input(shape=(noVariants,))
+        inputs.append(variantLayer)
+    for i in range(noRealOutputs):
+        # output should range in 0.5 and 1.0
+        scheduleCompressionLayer = Input(shape=(1,))
+        inputs.append(scheduleCompressionLayer)
+    return inputs
 
-def generateOutputLayer(actionSpace,previousLayer):
+def generateActionOutputLayer(actionSpace,previousLayer):
     categoricalOutputs = actionSpace.VariantNumbers()
     if actionSpace.withScheduleCompression:
         noRealOutputs = actionSpace.noActivities
@@ -50,3 +67,44 @@ def oneHotEncode(actionList):
             encoding = variables[:,len(VariantNumbers)+i]
             outputs.append(encoding)
     return outputs
+
+def predictionToAction(prediction,actionSpace,kind):
+    outputList = [np.squeeze(i) for i in prediction]
+    output = outputList
+
+    activityVariantIndizes = []
+    for i, varNum in enumerate(actionSpace.activityVariantNumbers):
+        variantProbs = output[i]
+        if varNum > 1:
+            if kind == 'random':
+                variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
+                chosenVariant = np.random.choice(range(len(variantProbs)), 1, p=variantProbs)[0]
+            elif kind == 'best':
+                chosenVariant = np.argmax(variantProbs)
+        else:
+            chosenVariant = 0
+        activityVariantIndizes.append(chosenVariant)
+
+    eventVariantIndizes = []
+    for i, varNum in enumerate(actionSpace.eventVariantNumbers):
+        variantProbs = output[i + actionSpace.noActivities]
+        if varNum > 1:
+            if kind == 'random':
+                variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sum up to 1
+                chosenVariant = np.random.choice(range(len(variantProbs)), 1, p=variantProbs)[0]
+            elif kind == 'best':
+                chosenVariant = np.argmax(variantProbs)
+        else:
+            chosenVariant = 0
+        eventVariantIndizes.append(chosenVariant)
+
+    scheduleCompressionFactors = output[actionSpace.noActivities + actionSpace.noEvents:]
+    if kind == 'random':
+        scheduleCompressionFactors += np.random.uniform(-0.1, 0.1, len(scheduleCompressionFactors))
+    scheduleCompressionFactors = [i.item(0) for i in scheduleCompressionFactors]
+    scheduleCompressionFactors = np.maximum(scheduleCompressionFactors, 0.5)
+    scheduleCompressionFactors = np.minimum(scheduleCompressionFactors, 1)
+
+    newAction = ActionSpace.Action(actionSpace)
+    newAction.saveDirectly(activityVariantIndizes, eventVariantIndizes, scheduleCompressionFactors)
+    return newAction

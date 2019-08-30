@@ -39,7 +39,7 @@ class Policy:
         #intLayer = Dense(64, activation='relu')(intLayer)
 
         #define output layer
-        outputs,losses = ActorCritic_general.generateOutputLayer(self.actionSpace,intLayer)
+        outputs,losses = ActorCritic_general.generateActionOutputLayer(self.actionSpace,intLayer)
 
         #define model
         model = Model(inputs=inputs,outputs=outputs)
@@ -52,7 +52,7 @@ class Policy:
         self.model = model
 
         #plot model with graphviz
-        plot_model(model, to_file='model.png')
+        plot_model(model, to_file='model.png',show_shapes=True)
 
 
     def update(self,outputActions,updateWeights,input=0):
@@ -71,46 +71,9 @@ class Policy:
             input = np.ones((1,1,1))
         #output is a probability distribution for all categorical outputs
         outputPrediction = self.model.predict(input)
-        outputList = [np.squeeze(i) for i in outputPrediction]
-        output = outputList
 
-        activityVariantIndizes = []
-        for i ,varNum in enumerate(self.actionSpace.activityVariantNumbers):
-            variantProbs = output[i]
-            if varNum>1:
-                if kind == 'random':
-                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
-                    chosenVariant = np.random.choice(range(len(variantProbs)),1,p=variantProbs)[0]
-                elif kind == 'best':
-                    chosenVariant = np.argmax(variantProbs)
-            else:
-                chosenVariant = 0
-            activityVariantIndizes.append(chosenVariant)
-
-        eventVariantIndizes = []
-        for i ,varNum in enumerate(self.actionSpace.eventVariantNumbers):
-            variantProbs = output[i+self.actionSpace.noActivities]
-            if varNum>1:
-                if kind == 'random':
-                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sum up to 1
-                    chosenVariant = np.random.choice(range(len(variantProbs)),1,p=variantProbs)[0]
-                elif kind == 'best':
-                    chosenVariant = np.argmax(variantProbs)
-            else:
-                chosenVariant = 0
-            eventVariantIndizes.append(chosenVariant)
-
-        scheduleCompressionFactors = output[self.actionSpace.noActivities+self.actionSpace.noEvents:]
-        if kind == 'random':
-            scheduleCompressionFactors += np.random.uniform(-0.1,0.1,len(scheduleCompressionFactors))
-        scheduleCompressionFactors = [i.item(0) for i in scheduleCompressionFactors]
-        scheduleCompressionFactors = np.maximum(scheduleCompressionFactors,0.5)
-        scheduleCompressionFactors = np.minimum(scheduleCompressionFactors,1)
-
-
-        newAction = ActionSpace.Action(self.actionSpace)
-        newAction.saveDirectly(activityVariantIndizes,eventVariantIndizes,scheduleCompressionFactors)
-        return newAction
+        action = ActorCritic_general.predictionToAction(outputPrediction,self.actionSpace,kind)
+        return action
 
     def sampleAction(self,input=0):
         nextAction = self.getAction('random',input)
