@@ -46,16 +46,16 @@ class VAE_Policy(Policy):
         #self.inputShape = (1)
 
     def defineModel(self):
-        verbose = True
+        verbose = False
 
-        self.latentDim = 8
+        self.latentDim = 4
         latentDim = self.latentDim
 
         #define encoder model
         encoder_inputLayers = ActorCritic_general.generatActionInputLayer(self.actionSpace)
         encoder_inputConcatLayer = concatenate(encoder_inputLayers)
-        encoder_intLayer = Dense(32,activation='relu')(encoder_inputConcatLayer)
-        encoder_intLayer_last = Dense(16,activation='relu')(encoder_intLayer)
+        encoder_intLayer = Dense(latentDim*4,activation='relu')(encoder_inputConcatLayer)
+        encoder_intLayer_last = Dense(latentDim*2,activation='relu')(encoder_intLayer)
         encoder_meanLayer = Dense(latentDim,activation='relu')(encoder_intLayer_last)
         encoder_logVarianceLayer = Dense(latentDim, activation='relu')(encoder_intLayer_last)
         encoder_outputLayer = Lambda(VAE_sampling,output_shape=(latentDim,))([encoder_meanLayer,encoder_logVarianceLayer])
@@ -72,8 +72,8 @@ class VAE_Policy(Policy):
         decoder_inputLayerState = Input(shape=self.inputShape)
         decoder_inputLayers = [decoder_inputLayerLatentAction,decoder_inputLayerState]
         decoder_inputConcatLayer = concatenate(decoder_inputLayers,axis = 1)
-        decoder_intLayer = Dense(16,activation='relu')(decoder_inputConcatLayer)
-        decoder_intLayer_last = Dense(32, activation='relu')(decoder_intLayer)
+        decoder_intLayer = Dense(latentDim*2,activation='relu')(decoder_inputConcatLayer)
+        decoder_intLayer_last = Dense(latentDim*4, activation='relu')(decoder_intLayer)
         decoder_outputLayer, losses_reconstruction = ActorCritic_general.generateActionOutputLayer(self.actionSpace,decoder_intLayer_last)
         decoder_Model = Model(decoder_inputLayers,decoder_outputLayer,name='decoder')
         if verbose:
@@ -103,11 +103,18 @@ class VAE_Policy(Policy):
         self.encoder = encoder_Model
         self.decoder = decoder_Model
 
-    def getAction(self,kind,inputState):
+    def getAction(self,kind,inputState=0,explorationFactor=0):
         if inputState == 0:
             inputState = np.ones((1,1))
 
+        #introduce randomness through latent space
         inputLatentAction = np.random.rand(1,self.latentDim)
+        inputLatentAction *= explorationFactor
+        if explorationFactor<0:
+            kind = 'random'
+        else:
+            kind = 'best'
+
         totalInput = [inputLatentAction,inputState]
         outputPrediction = self.decoder.predict(totalInput)
         action = ActorCritic_general.predictionToAction(outputPrediction,self.actionSpace,kind)
