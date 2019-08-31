@@ -66,21 +66,21 @@ class Policy:
         self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
 
 
-    def getAction(self,kind,input):
-        if input == 0:
-            input = np.ones((1,1))
+    def getAction(self,kind,inputState,explorationFactor=0):
+        if inputState == 0:
+            inputState = np.ones((1,1))
         #output is a probability distribution for all categorical outputs
-        outputPrediction = self.model.predict(input)
+        outputPrediction = self.model.predict(inputState)
 
         action = ActorCritic_general.predictionToAction(outputPrediction,self.actionSpace,kind)
         return action
 
-    def sampleAction(self,input=0):
-        nextAction = self.getAction('random',input)
+    def sampleAction(self,inputState=0,explorationFactor=0):
+        nextAction = self.getAction('random',inputState=inputState,explorationFactor=explorationFactor)
         return nextAction
 
-    def getBestAction(self,input=0):
-        bestAction = self.getAction('best', input)
+    def getBestAction(self,inputState=0):
+        bestAction = self.getAction('best', inputState)
         return bestAction
 
 
