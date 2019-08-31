@@ -15,7 +15,7 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
         '''generate Model with its options'''
         modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
         modelOptions.probabilistic = False
-        modelOptions.withScheduleCompression=True
+        modelOptions.withScheduleCompression=False
         model = generateModel(modelOptions)
 
 
@@ -40,7 +40,7 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
     explorationFactor = hyperparams.get('explorationFactor',0.9)
     explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.99)
 
-    learningRate = hyperparams.get('learningRate',0.1)
+    learningRate = hyperparams.get('learningRate',0.0003)
     learningRateDecayFactor = hyperparams.get('learningRateDecayFactor',0.98)
 
     '''run actor-critic algorithm'''
@@ -49,15 +49,16 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
     start = time.time()
     for i in range(noIterations):
         #sample actions
-        actions = [policy.sampleAction(explorationFactor=explorationFactor) for i in range(batchSize)]
+        actions = [policy.sampleAction() for i in range(batchSize)]
         #appy action on model, sample 'reward' (loss)
         losses = [model.simulate_returnLoss(action) for action in actions]
+        meanLoss = np.mean(losses)
         #update baseline
-        baseline += baselineUpdateFactor*(np.mean(losses)-baseline)
+        baseline += baselineUpdateFactor*(meanLoss-baseline)
         #update policy
         advantages = (baseline-losses)/baseStd
         advantages -= explorationFactor  # keep exploring
-        policy.update(actions,advantages)
+        policy.update(actions,advantages*learningRate)
 
         #update rates
         explorationFactor *= explorationDecayFactor
@@ -65,16 +66,14 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
 
         #print best loss
         if  verbose >= 2 and (i % verboseNoIterations == 0 or i == noIterations - 1):
-            bestAction = policy.getBestAction()
-            loss = model.simulate_returnLoss(bestAction)
+            loss = meanLoss
             if np.isnan(loss):
                 print('Loss is nan, stopping algorithm')
-                i = noIterations
+                break
             print(str(i) + ":  loss:" + str(loss) + '  baseline:' + str(baseline) + ' time: ' + str(time.time()-start))
-        #if False and verbose >= 2 and ( i% (verboseNoIterations*5) == 0 or i == noIterations - 1):
-            #bestAction = policy.getBestAction()
-            #prediction = policy.model.predict([bestAction,np.ones((1,))])
-            #print('prediction:' + str(prediction))
+        if True and verbose >= 2 and ( i% (verboseNoIterations*5) == 0 or i == noIterations - 1):
+            prediction = policy.getPrediction()
+            print('prediction:' + str(prediction))
 
     end = time.time()
 

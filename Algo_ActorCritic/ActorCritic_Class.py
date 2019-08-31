@@ -75,8 +75,8 @@ class Policy:
         action = ActorCritic_general.predictionToAction(outputPrediction,self.actionSpace,kind)
         return action
 
-    def sampleAction(self,inputState=0,explorationFactor=0):
-        nextAction = self.getAction('random',inputState=inputState,explorationFactor=explorationFactor)
+    def sampleAction(self,inputState=0):
+        nextAction = self.getAction('random',inputState=inputState)
         return nextAction
 
     def getBestAction(self,inputState=0):

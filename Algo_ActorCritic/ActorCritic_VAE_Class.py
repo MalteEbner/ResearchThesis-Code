@@ -1,5 +1,5 @@
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Lambda, concatenate, Reshape, Flatten
+from tensorflow.keras.layers import Input, Dense, Lambda, concatenate
 from tensorflow.math import maximum as tf_maximum
 from tensorflow.math import minimum as tf_minimum
 from Interface import ActionSpace
@@ -11,6 +11,7 @@ from Algo_ActorCritic import ActorCritic_general
 from tensorflow.keras import backend as K
 from Algo_ActorCritic import ActorCritic_general
 from Algo_ActorCritic.ActorCritic_Class import Policy
+from tensorflow.keras.losses import mse, categorical_crossentropy
 
 
 # reparameterization trick
@@ -31,6 +32,7 @@ def VAE_sampling(args):
     # by default, random_normal has mean = 0 and std = 1.0
     epsilon = K.random_normal(shape=(batch, dim))
     return z_mean + K.exp(0.5 * z_log_var) * epsilon
+
 
 
 
@@ -61,8 +63,6 @@ class VAE_Policy(Policy):
         encoder_outputLayer = Lambda(VAE_sampling,output_shape=(latentDim,))([encoder_meanLayer,encoder_logVarianceLayer])
         encoder_outputLayers = [encoder_meanLayer,encoder_logVarianceLayer,encoder_outputLayer]
         encoder_Model = Model(encoder_inputLayers,encoder_outputLayers,name='encoder')
-
-
         if verbose:
             encoder_Model.summary()
             plot_model(encoder_Model, to_file='vae_encoder.png', show_shapes=True)
@@ -81,7 +81,6 @@ class VAE_Policy(Policy):
             plot_model(decoder_Model, to_file='vae_decoder.png', show_shapes=True)
 
         #define VAE model
-
         latentActionLayer = encoder_outputLayer
         outputs = decoder_Model([latentActionLayer,decoder_inputLayerState])
         vae_model = Model([encoder_inputLayers,decoder_inputLayerState],outputs,name='vae')
@@ -90,34 +89,59 @@ class VAE_Policy(Policy):
             plot_model(vae_model, to_file='vae_model.png', show_shapes=True)
 
         #add KL-divergence to losses
-        pass
+        kl_loss = 1 + encoder_logVarianceLayer - K.square(encoder_meanLayer) - K.exp(encoder_logVarianceLayer)
+        kl_loss = K.sum(kl_loss, axis=-1)
+        kl_loss *= -0.5
+
+        losses = []
+        for i,loss_recon_str in enumerate(losses_reconstruction):
+            loss = self.lossWrapper(kl_loss,loss_recon_str)
+            losses.append(loss)
+        #vae_model.add_loss(losses)
 
         #define model
         sgd = optimizers.SGD(lr=1)
-        vae_model.compile(optimizer=sgd,
-                      loss=losses_reconstruction,
-                      metrics=['accuracy'])
+        vae_model.compile(optimizer=sgd,loss=losses,metrics=['accuracy'])
 
         #save models
         self.model = vae_model
         self.encoder = encoder_Model
         self.decoder = decoder_Model
 
-    def getAction(self,kind,inputState=0,explorationFactor=0):
+
+
+
+    #returns the loss function for the VAE
+    #inspired by https://stackoverflow.com/questions/50659235/adding-intermediate-layer-to-the-loss-function-in-deep-learning-keras
+    def lossWrapper(self,kl_loss,lossType):
+        if lossType == 'mean_squared_error':
+            reconstructionLoss = mse
+        elif lossType == 'categorical_crossentropy':
+            reconstructionLoss = categorical_crossentropy
+        else:
+            print('ERROR: wrong loss')
+
+        def loss(y_true_,y_pred_):
+            loss_value = kl_loss + reconstructionLoss(y_true_,y_pred_)
+            return loss_value
+
+        return loss
+
+    def getPrediction(self,inputState=0):
         if inputState == 0:
             inputState = np.ones((1,1))
 
         #introduce randomness through latent space
         inputLatentAction = np.random.rand(1,self.latentDim)
-        inputLatentAction *= explorationFactor
-        if explorationFactor<0:
-            kind = 'random'
-        else:
-            kind = 'best'
 
         totalInput = [inputLatentAction,inputState]
         outputPrediction = self.decoder.predict(totalInput)
-        action = ActorCritic_general.predictionToAction(outputPrediction,self.actionSpace,kind)
+        return outputPrediction
+
+
+    def getAction(self,kind,inputState=0):
+        prediction = self.getPrediction(inputState)
+        action = ActorCritic_general.predictionToAction(prediction,self.actionSpace,kind)
         return action
 
     def update(self,outputActions,updateWeights,inputStates=0):
@@ -130,7 +154,7 @@ class VAE_Policy(Policy):
         outputs = encodedActions
         inputs = encodedActions + [inputsStates]
         sampleWeights =[updateWeights]*(noOutputs-noScheduleCompressionFactors) + [np.maximum(updateWeights,0)]*noScheduleCompressionFactors
-        self.model.train_on_batch(inputs,outputs,sample_weight=sampleWeights)
+        self.model.fit(inputs,outputs,sample_weight=sampleWeights,verbose=False)
 
 
 
