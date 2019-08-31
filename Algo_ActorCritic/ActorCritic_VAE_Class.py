@@ -68,10 +68,10 @@ class VAE_Policy(Policy):
             plot_model(encoder_Model, to_file='vae_encoder.png', show_shapes=True)
 
         #define decoder model
-        decoder_inputLayerLatentAction = Input(shape=(latentDim,1))
+        decoder_inputLayerLatentAction = Input(shape=(latentDim,))
         decoder_inputLayerState = Input(shape=self.inputShape)
         decoder_inputLayers = [decoder_inputLayerLatentAction,decoder_inputLayerState]
-        decoder_inputConcatLayer = Flatten()(concatenate(decoder_inputLayers,axis = 1))
+        decoder_inputConcatLayer = concatenate(decoder_inputLayers,axis = 1)
         decoder_intLayer = Dense(16,activation='relu')(decoder_inputConcatLayer)
         decoder_intLayer_last = Dense(32, activation='relu')(decoder_intLayer)
         decoder_outputLayer, losses_reconstruction = ActorCritic_general.generateActionOutputLayer(self.actionSpace,decoder_intLayer_last)
@@ -82,8 +82,8 @@ class VAE_Policy(Policy):
 
         #define VAE model
 
-        reshapedLatentAction = Reshape((8,1))(encoder_outputLayer)
-        outputs = decoder_Model([reshapedLatentAction,decoder_inputLayerState])
+        latentActionLayer = encoder_outputLayer
+        outputs = decoder_Model([latentActionLayer,decoder_inputLayerState])
         vae_model = Model([encoder_inputLayers,decoder_inputLayerState],outputs,name='vae')
         if verbose:
             vae_model.summary()
@@ -105,9 +105,9 @@ class VAE_Policy(Policy):
 
     def getAction(self,kind,inputState):
         if inputState == 0:
-            inputState = np.ones((1,1,1))
+            inputState = np.ones((1,1))
 
-        inputLatentAction = np.random.rand(1,self.latentDim,1)
+        inputLatentAction = np.random.rand(1,self.latentDim)
         totalInput = [inputLatentAction,inputState]
         outputPrediction = self.decoder.predict(totalInput)
         action = ActorCritic_general.predictionToAction(outputPrediction,self.actionSpace,kind)
@@ -118,7 +118,7 @@ class VAE_Policy(Policy):
         noOutputs = int(outputActions[0].actionSpace.NoAllVariables())
         noScheduleCompressionFactors = len(outputActions[0].scheduleCompressionFactors)
         if inputStates == 0:
-            inputsStates = np.ones((noSamples,1,1))
+            inputsStates = np.ones((noSamples,1))
         encodedActions = ActorCritic_general.oneHotEncode(outputActions)
         outputs = encodedActions
         inputs = encodedActions + [inputsStates]
