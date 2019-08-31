@@ -60,7 +60,7 @@ def oneHotEncode(actionList):
     for i in range(len(VariantNumbers)):
         noVariants = VariantNumbers[i]
         encoding = to_categorical(variables[:,i],num_classes=noVariants)
-        encoding = expand_dims(encoding,axis=1)
+        #encoding = expand_dims(encoding,axis=1)
         outputs.append(encoding)
     if actionList[0].actionSpace.withScheduleCompression:
         for i in range(noActivities):

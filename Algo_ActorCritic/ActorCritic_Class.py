@@ -22,7 +22,7 @@ ii) the policy can be applied on a state to sample a random action given that st
 class Policy:
     def __init__(self,actionSpace,stateSpace=0):
         if stateSpace==0:
-            self.inputShape = (1,1)
+            self.inputShape = (1,)
         else:
             pass ##Much more complex input shape
         self.actionSpace = actionSpace
@@ -60,7 +60,7 @@ class Policy:
         noOutputs = int(outputActions[0].actionSpace.NoAllVariables())
         noScheduleCompressionFactors = len(outputActions[0].scheduleCompressionFactors)
         if input == 0:
-            inputs = np.ones((noSamples,1,1))
+            inputs = np.ones((noSamples,1))
         outputs = ActorCritic_general.oneHotEncode(outputActions)
         sampleWeights =[updateWeights]*(noOutputs-noScheduleCompressionFactors) + [np.maximum(updateWeights,0)]*noScheduleCompressionFactors
         self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
@@ -68,7 +68,7 @@ class Policy:
 
     def getAction(self,kind,input):
         if input == 0:
-            input = np.ones((1,1,1))
+            input = np.ones((1,1))
         #output is a probability distribution for all categorical outputs
         outputPrediction = self.model.predict(input)
 
