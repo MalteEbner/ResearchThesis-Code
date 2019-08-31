@@ -31,10 +31,10 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
         print('baseline:' + str(baseline) + " baseline_std: " + str(baseStd))
 
     '''hyperparams'''
-    batchSize = hyperparams.get('batchSize',8)
+    batchSize = hyperparams.get('batchSize',16)
     noSamples = hyperparams.get('noSamples',80000)
     noIterations = int(noSamples/batchSize)
-    verboseNoIterations = int(128/batchSize)
+    verboseNoIterations = max(int(16/batchSize),1)
     baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.1)
 
     explorationFactor = hyperparams.get('explorationFactor',0.9)
