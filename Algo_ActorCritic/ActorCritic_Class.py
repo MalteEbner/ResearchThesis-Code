@@ -22,7 +22,7 @@ ii) the policy can be applied on a state to sample a random action given that st
 class Policy:
     def __init__(self,actionSpace,stateSpace=0):
         if stateSpace==0:
-            self.inputShape = (1,)
+            self.inputShapeState = (1,)
         else:
             pass ##Much more complex input shape
         self.actionSpace = actionSpace
@@ -33,7 +33,7 @@ class Policy:
     def defineModel(self):
         '''Model definition of neural network'''
         #input layer
-        inputs = Input(shape=self.inputShape)
+        inputs = Input(shape=self.inputShapeState)
         #intermediate layers
         intLayer = Dense(1, activation='relu')(inputs)
         #intLayer = Dense(64, activation='relu')(intLayer)
@@ -66,7 +66,7 @@ class Policy:
         self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
 
 
-    def getAction(self,kind,inputState,explorationFactor=0):
+    def getAction(self,kind,inputState):
         if inputState == 0:
             inputState = np.ones((1,1))
         #output is a probability distribution for all categorical outputs
