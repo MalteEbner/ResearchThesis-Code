@@ -13,7 +13,7 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
 
     if model == 0:
         '''generate Model with its options'''
-        modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+        modelOptions = Model_options('RollerCoaster') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
         modelOptions.probabilistic = False
         modelOptions.withScheduleCompression=False
         model = generateModel(modelOptions)
@@ -31,16 +31,16 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
         print('baseline:' + str(baseline) + " baseline_std: " + str(baseStd))
 
     '''hyperparams'''
-    batchSize = hyperparams.get('batchSize',64)
+    batchSize = hyperparams.get('batchSize',16)
     noSamples = hyperparams.get('noSamples',80000)
     noIterations = int(noSamples/batchSize)
-    verboseNoIterations = max(int(1024/batchSize),1)
+    verboseNoIterations = max(int(128/batchSize),1)
     baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.1)
 
     explorationFactor = hyperparams.get('explorationFactor',0.9)
-    explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.99)
+    explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.95)
 
-    learningRate = hyperparams.get('learningRate',0.009)
+    learningRate = hyperparams.get('learningRate',0.5)
     learningRateDecayFactor = hyperparams.get('learningRateDecayFactor',0.98)
 
     '''run actor-critic algorithm'''
@@ -58,7 +58,7 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
         #update policy
         advantages = (baseline-losses)/baseStd
         advantages -= explorationFactor  # keep exploring
-        policy.update(actions,advantages*learningRate)
+        policy.update(actions,advantages*learningRate,learningRate*0.1)
 
         #update rates
         explorationFactor *= explorationDecayFactor
@@ -66,11 +66,13 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
 
         #print best loss
         if  verbose >= 2 and (i % verboseNoIterations == 0 or i == noIterations - 1):
-            loss = np.min(losses)
-            if np.isnan(loss):
+            best = policy.getBestAction()
+            performanceOfBest = model.simulateMean(best)
+            if np.all(np.isnan(performanceOfBest)):
                 print('Loss is nan, stopping algorithm')
+                raise ValueError
                 break
-            print(str(i) + ":  loss:" + str(loss) + '  baseline:' + str(baseline) + ' time: ' + str(time.time()-start))
+            print(str(i) + ":  loss:" + str(performanceOfBest) + '  baseline:' + str(baseline) + ' time: ' + str(time.time()-start))
         if True and verbose >= 2 and ( i% (verboseNoIterations*5) == 0 or i == noIterations - 1):
             prediction = policy.getPrediction()
             print('prediction:' + str(prediction))

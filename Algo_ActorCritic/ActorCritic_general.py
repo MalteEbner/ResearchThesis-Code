@@ -72,31 +72,37 @@ def predictionToAction(prediction,actionSpace,kind):
     outputList = [np.squeeze(i) for i in prediction]
     output = outputList
 
-    activityVariantIndizes = []
-    for i, varNum in enumerate(actionSpace.activityVariantNumbers):
-        variantProbs = output[i]
-        if varNum > 1:
-            if kind == 'random':
-                variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
-                chosenVariant = np.random.choice(range(len(variantProbs)), 1, p=variantProbs)[0]
-            elif kind == 'best':
-                chosenVariant = np.argmax(variantProbs)
-        else:
-            chosenVariant = 0
-        activityVariantIndizes.append(chosenVariant)
 
-    eventVariantIndizes = []
-    for i, varNum in enumerate(actionSpace.eventVariantNumbers):
-        variantProbs = output[i + actionSpace.noActivities]
-        if varNum > 1:
-            if kind == 'random':
-                variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sum up to 1
-                chosenVariant = np.random.choice(range(len(variantProbs)), 1, p=variantProbs)[0]
-            elif kind == 'best':
-                chosenVariant = np.argmax(variantProbs)
-        else:
-            chosenVariant = 0
+    activityVariantIndizes = []
+    try:
+        for i, varNum in enumerate(actionSpace.activityVariantNumbers):
+            variantProbs = output[i]
+            if varNum > 1:
+                if kind == 'random':
+                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
+                    chosenVariant = np.random.choice(range(len(variantProbs)), 1, p=variantProbs)[0]
+                elif kind == 'best':
+                    chosenVariant = np.argmax(variantProbs)
+            else:
+                chosenVariant = 0
+            activityVariantIndizes.append(chosenVariant)
+
+        eventVariantIndizes = []
+        for i, varNum in enumerate(actionSpace.eventVariantNumbers):
+            variantProbs = output[i + actionSpace.noActivities]
+            if varNum > 1:
+                if kind == 'random':
+                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sum up to 1
+                    chosenVariant = np.random.choice(range(len(variantProbs)), 1, p=variantProbs)[0]
+                elif kind == 'best':
+                    chosenVariant = np.argmax(variantProbs)
+            else:
+                chosenVariant = 0
         eventVariantIndizes.append(chosenVariant)
+    except ValueError:
+        print('ERROR: variantProbs either NaN or non-negative')
+        print(str(output))
+        raise ValueError
 
     scheduleCompressionFactors = output[actionSpace.noActivities + actionSpace.noEvents:]
     if kind == 'random':
