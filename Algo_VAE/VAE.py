@@ -34,8 +34,8 @@ class VAE_Model:
         #define encoder model
         encoder_inputLayers = ActorCritic_general.generatActionInputLayer(self.actionSpace)
         encoder_inputConcatLayer = concatenate(encoder_inputLayers)
-        encoder_intLayer = Dense(latentDim*4,activation='relu')(encoder_inputConcatLayer)
-        encoder_intLayer_last = Dense(latentDim*2,activation='relu')(encoder_intLayer)
+        #encoder_intLayer = Dense(latentDim*4,activation='relu')(encoder_inputConcatLayer)
+        encoder_intLayer_last = Dense(latentDim*2,activation='relu')(encoder_inputLayers)
         encoder_meanLayer = Dense(latentDim,activation='relu')(encoder_intLayer_last)
         encoder_logVarianceLayer = Dense(latentDim, activation='relu',bias_initializer=Constant(value=0))(encoder_intLayer_last)
         encoder_outputLayer = Lambda(self.VAE_sampling,output_shape=(latentDim,))([encoder_meanLayer,encoder_logVarianceLayer])
@@ -47,8 +47,8 @@ class VAE_Model:
 
         #define decoder model
         decoder_inputLayerLatentAction = Input(shape=(latentDim,))
-        decoder_intLayer = Dense(latentDim*2,activation='relu')(decoder_inputLayerLatentAction)
-        decoder_intLayer_last = Dense(latentDim*4, activation='relu')(decoder_intLayer)
+        #decoder_intLayer = Dense(latentDim*2,activation='relu')(decoder_inputLayerLatentAction)
+        decoder_intLayer_last = Dense(latentDim*4, activation='relu')(decoder_inputLayerLatentAction)
         decoder_outputLayer, losses_reconstruction = ActorCritic_general.generateActionOutputLayer(self.actionSpace,decoder_intLayer_last)
         decoder_Model = Model(decoder_inputLayerLatentAction,decoder_outputLayer,name='decoder')
         if verbose:
