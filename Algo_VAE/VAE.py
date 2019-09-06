@@ -93,9 +93,9 @@ class VAE_Model:
         action = ActorCritic_general.predictionToAction(prediction,self.actionSpace,kind)
         return action
 
-    def update(self,encodedActions,learningRate):
+    def update(self, decodedActions, learningRate):
         self.model.optimizer.lr=learningRate
-        self.model.fit(encodedActions,encodedActions,verbose=False)
+        self.model.fit(decodedActions, decodedActions, verbose=False)
 
 
     def VAE_sampling(self,args):
