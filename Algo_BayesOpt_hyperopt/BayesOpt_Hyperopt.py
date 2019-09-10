@@ -14,15 +14,18 @@ from Model_general import commonFunctions
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = True
-modelOptions.withScheduleCompression=True
+modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)
 
 
 '''
 define search spaces
 '''
+actionSpace = model.getActionSpace()
+if actionSpace.withScheduleCompression:
+    raise NotImplementedError
 
-noActivityVariants = model.getActionSpace().VariantNumbers()
+noActivityVariants = actionSpace.VariantNumbers()
 space_equalChoice = {}
 for num in range(len(noActivityVariants)):
     varName = "act_ID_"+str(num)
@@ -50,13 +53,15 @@ def get_chosenVariantIndizes(chosenVariantIndizes_dict):
         chosenVariantIndizes.append(chosenVariantID)
     return chosenVariantIndizes
 
+def objectiveFunction(chosenVariantIndizes_dict):
+    action = ActionSpace.Action(actionSpace)
+    action.saveIndizesCombined(get_chosenVariantIndizes(chosenVariantIndizes_dict))
+    loss = model.simulate_returnLoss(action)
+    return loss
+
 '''
 do the optimization
 '''
-optFunction = lambda chosenVariantIndizes_dict: model.simulate_returnLoss(get_chosenVariantIndizes(chosenVariantIndizes_dict))
-best = fmin(optFunction,space_softmaxChoice,algo=tpe.suggest,max_evals=400)
+best = fmin(objectiveFunction,space_softmaxChoice,algo=tpe.suggest,max_evals=400)
 
-print("Best: " + str(model.simulate(get_chosenVariantIndizes(best))))
-
-best = model.getStartpoint()
-print("Default: " + str(model.simulate(best)))
+print("Best: " + str(objectiveFunction(best)))
