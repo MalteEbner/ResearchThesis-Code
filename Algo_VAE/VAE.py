@@ -35,7 +35,7 @@ class VAE_Model:
         encoder_inputLayers = ActorCritic_general.generatActionInputLayer(self.actionSpace)
         encoder_inputConcatLayer = concatenate(encoder_inputLayers)
         #encoder_intLayer = Dense(latentDim*4,activation='relu')(encoder_inputConcatLayer)
-        encoder_intLayer_last = Dense(latentDim*2,activation='relu')(encoder_inputLayers)
+        encoder_intLayer_last = Dense(latentDim*2,activation='relu')(encoder_inputConcatLayer)
         encoder_meanLayer = Dense(latentDim,activation='relu')(encoder_intLayer_last)
         encoder_logVarianceLayer = Dense(latentDim, activation='relu',bias_initializer=Constant(value=0))(encoder_intLayer_last)
         encoder_outputLayer = Lambda(self.VAE_sampling,output_shape=(latentDim,))([encoder_meanLayer,encoder_logVarianceLayer])

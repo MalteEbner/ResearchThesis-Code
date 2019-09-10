@@ -2,24 +2,27 @@ from Algo_Genetic import GeneticOpt_Class
 from Interface.generateModel import generateModel
 import time
 from Interface.Model_options import Model_options
+import random
 
 
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = True
+modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=True
 model = generateModel(modelOptions)
 
 
 '''define start Population of genetic algorithm'''
 actionSpace = model.getActionSpace()
-genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss,500)
-if hasattr(model,'getGoodStartpoint'):
+genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss,300)
+if hasattr(model,'getGoodStartpoint') and actionSpace.withScheduleCompression == False:
     startChromosome = model.getGoodStartpoint(actionSpace)
 else:
-    startChromosome = actionSpace.getZeroAction()
+    startChromosome = actionSpace.sampleZeroAction()
 genePool.appendToPop(startChromosome)
 print(model.simulateMean(startChromosome))
+
+random.seed()
 
 '''run genetic algorithm'''
 start = time.time()
