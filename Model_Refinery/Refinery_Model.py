@@ -61,7 +61,7 @@ class Variant_Refinery(Model_general.Variant):
     def __init__(self,supplier):
         self.supplier = supplier
 
-    def simulate(self,model,compressionFactor=1):
+    def simulate(self,compressionFactor=1):
         self.ensureStartpoint()
 
         if len(self.activity.predecessors)>0:

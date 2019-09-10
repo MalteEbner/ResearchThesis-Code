@@ -32,15 +32,18 @@ class VAE_Model:
         latentDim = self.latentDim
 
         #define encoder model
-        encoder_inputLayers = ActorCritic_general.generatActionInputLayer(self.actionSpace)
-        encoder_inputConcatLayer = concatenate(encoder_inputLayers)
-        #encoder_intLayer = Dense(latentDim*4,activation='relu')(encoder_inputConcatLayer)
-        encoder_intLayer_last = Dense(latentDim*2,activation='relu')(encoder_inputConcatLayer)
+        encoder_inputLayer_s = ActorCritic_general.generatActionInputLayer(self.actionSpace)
+        if len(encoder_inputLayer_s)>1:
+            encoder_inputLayer = concatenate(encoder_inputLayer_s)
+        else:
+            encoder_inputLayer = encoder_inputLayer_s[0]
+        #encoder_intLayer = Dense(latentDim*4,activation='relu')(encoder_inputLayers)
+        encoder_intLayer_last = Dense(latentDim*2,activation='relu')(encoder_inputLayer)
         encoder_meanLayer = Dense(latentDim,activation='relu')(encoder_intLayer_last)
         encoder_logVarianceLayer = Dense(latentDim, activation='relu',bias_initializer=Constant(value=0))(encoder_intLayer_last)
         encoder_outputLayer = Lambda(self.VAE_sampling,output_shape=(latentDim,))([encoder_meanLayer,encoder_logVarianceLayer])
         encoder_outputLayers = [encoder_meanLayer,encoder_logVarianceLayer,encoder_outputLayer]
-        encoder_Model = Model(encoder_inputLayers,encoder_outputLayers,name='encoder')
+        encoder_Model = Model(encoder_inputLayer_s,encoder_outputLayers,name='encoder')
         if verbose:
             encoder_Model.summary()
             plot_model(encoder_Model, to_file='vae_encoder.png', show_shapes=True)
@@ -58,7 +61,7 @@ class VAE_Model:
         #define VAE model
         latentActionLayer = encoder_outputLayer
         outputs = decoder_Model(latentActionLayer)
-        vae_model = Model(encoder_inputLayers,outputs,name='vae')
+        vae_model = Model(encoder_inputLayer_s,outputs,name='vae')
         if verbose:
             vae_model.summary()
             plot_model(vae_model, to_file='vae_model.png', show_shapes=True)
@@ -89,13 +92,14 @@ class VAE_Model:
 
 
     def latentActionToAction(self,inputLatentAction,kind):
-        prediction = self.decoder.predict(inputLatentAction)
+        prediction = self.decoder.predict([inputLatentAction])
         action = ActorCritic_general.predictionToAction(prediction,self.actionSpace,kind)
         return action
 
-    def update(self, decodedActions, learningRate):
+    def update(self, actions, learningRate):
         self.model.optimizer.lr=learningRate
-        self.model.fit(decodedActions, decodedActions, verbose=False)
+        encodedActions = ActorCritic_general.oneHotEncode(actions)
+        self.model.fit(encodedActions, encodedActions, verbose=False)
 
 
     def VAE_sampling(self,args):

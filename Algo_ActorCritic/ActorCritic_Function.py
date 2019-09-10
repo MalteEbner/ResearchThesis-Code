@@ -1,22 +1,16 @@
 from Algo_ActorCritic import ActorCritic_Class
-from Interface.generateModel import generateModel
 import time
-from Interface.Model_options import Model_options
 import numpy as np
 
 
-def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
+
+def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
     if verbose >=1:
         print("NEW: run of actor critic algo")
     if hyperparams==0:
         hyperparams = {}
 
-    if model == 0:
-        '''generate Model with its options'''
-        modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-        modelOptions.probabilistic = False
-        modelOptions.withScheduleCompression=True
-        model = generateModel(modelOptions)
+
 
 
     '''define policy'''
@@ -24,7 +18,7 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
     policy = ActorCritic_Class.Policy(actionSpace)
 
     '''define baseline as average of 100 random actions'''
-    losses = [model.simulate_returnLoss(actionSpace.getRandomAction()) for i in range(100)]
+    losses = [model.simulate(actionSpace.sample()) for i in range(100)]
     baseline = np.mean(losses)
     baseStd = np.std(losses)
     if verbose >= 1:
@@ -51,7 +45,7 @@ def actorCritic_RunAlgo(model=0, verbose = 2, hyperparams=0):
         #sample actions
         actions = [policy.sampleAction() for i in range(batchSize)]
         #appy action on model, sample 'reward' (loss)
-        losses = [model.simulate_returnLoss(action) for action in actions]
+        losses = model.simulate(actions)
         #update baseline
         baseline += baselineUpdateFactor*(np.mean(losses)-baseline)
         #update policy

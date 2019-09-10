@@ -10,7 +10,7 @@ def softmax(x):
 
 def probsFromLosses(losses,exploitationFactor=10):
     # exploitationFactor ==0 equals all probs are the same
-    losses = np.array(losses)
+    losses = np.array(losses,dtype='float')
 
     #scale losses to [0 , 1]
     min_ = float(min(losses))

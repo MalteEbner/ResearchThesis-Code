@@ -16,7 +16,7 @@ class GeneticOpt():
         self.initializePopulation(initialPopSize)
 
 
-        self.defaultMutateProb = 1.0/4
+        self.defaultMutateProb = 1.0/15
 
 
 
@@ -34,7 +34,7 @@ class GeneticOpt():
         self.population = self.breedPopulation(matePopIndices,elitePopIndices)
         return soFarBestChromosome
 
-    def selection(self,losses,matePoolSize=100,eliteSize=5):
+    def selection(self,losses,matePoolSize=20,eliteSize=5):
         exploitationFactor = 0.1
         probs = commonFunctions.probsFromLosses(losses,exploitationFactor)
         try:
@@ -140,7 +140,7 @@ class Chromosome(ActionSpace.Action):
 
         for i in range(newChrom.actionSpace.noEvents):
             if random.random() < probB:
-                newChrom.eventIndizes[i] = chromosomeB.activityIndizes[i]
+                newChrom.eventIndizes[i] = chromosomeB.eventIndizes[i]
 
         return newChrom
 

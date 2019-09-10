@@ -12,7 +12,7 @@ from Model_general import commonFunctions
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)
