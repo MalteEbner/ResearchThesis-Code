@@ -42,14 +42,14 @@ def generateActionOutputLayer(actionSpace,previousLayer):
             # output should range in box constraints
             if space.is_bounded():
                 boxMean = np.mean([space.low,space.high],axis=0)
-                scheduleCompressionLayer = Dense(shape=space.shape, bias_initializer=Constant(value=boxMean))(
+                scheduleCompressionLayer_unconstrained = Dense(space.shape[0], bias_initializer=Constant(value=boxMean))(
                     previousLayer)
-                scheduleCompressionLayer2 = Lambda(lambda x: tf_minimum(tf_maximum(x, space.low), space.high))(
-                    scheduleCompressionLayer)
-                outputs.append(scheduleCompressionLayer2)
-                losses.append('mean_squared_error')
-            else:
-                raise NotImplementedError
+                scheduleCompressionLayer = Lambda(lambda x: tf_minimum(tf_maximum(x, space.low), space.high))(
+                    scheduleCompressionLayer_unconstrained)
+            else:#assumes space is unbounded on both sides
+                scheduleCompressionLayer = Dense(space.shape[0])(previousLayer)
+            outputs.append(scheduleCompressionLayer)
+            losses.append('mean_squared_error')
         else:
             raise NotImplementedError
     return outputs,losses

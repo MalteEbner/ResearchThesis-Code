@@ -52,6 +52,9 @@ class ActionSpace(spaces.Tuple):
         action.saveWithTuple(samples)
         return action
 
+    def sample(self):
+        return self.sampleAction()
+
 
 
 

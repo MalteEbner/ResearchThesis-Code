@@ -36,10 +36,10 @@ class Model_general:
         activityIndizes = action.activityIndizes
         if self.modelOptions.withScheduleCompression:
             for activity, index, compression in zip(self.activities, activityIndizes, action.scheduleCompressionFactors):
-                activity.variants[index].simulate(self,compression)
+                activity.variants[index].simulate(compression)
         else:
             for activity, index in zip(self.activities, activityIndizes):
-                activity.variants[index].simulate(self)
+                activity.variants[index].simulate()
 
         self.performance = self.calcPerformanceFunction(self.activities)
         self.loss = lossFunction(self.performance)
