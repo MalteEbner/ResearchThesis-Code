@@ -6,36 +6,57 @@ from tensorflow.math import minimum as tf_minimum
 from keras.utils import to_categorical
 from keras.backend import expand_dims
 import numpy as np
+from gym import spaces
 
 def generatActionInputLayer(actionSpace):
-    categoricalOutputs = actionSpace.VariantNumbers()
-    if actionSpace.withScheduleCompression:
-        noRealOutputs = actionSpace.noActivities
-    else:
-        noRealOutputs = 0
         
     # input Layers
     inputs = []
-    for noVariants in categoricalOutputs:
-        variantLayer = Input(shape=(noVariants,))
-        inputs.append(variantLayer)
-    for i in range(noRealOutputs):
-        # output should range in 0.5 and 1.0
-        scheduleCompressionLayer = Input(shape=(1,))
-        inputs.append(scheduleCompressionLayer)
+    for space in actionSpace.spaces:
+        if isinstance(space,spaces.MultiDiscrete):
+            for noVariants in space.nvec:
+                variantLayer = Input(shape=(noVariants,))
+                inputs.append(variantLayer)
+        elif isinstance(space,spaces.Box):
+                scheduleLayer = Input(shape=space.shape)
+                inputs.append(scheduleLayer)
+        else:
+            raise NotImplementedError
+
+
+
     return inputs
 
 def generateActionOutputLayer(actionSpace,previousLayer):
-    categoricalOutputs = actionSpace.VariantNumbers()
-    if actionSpace.withScheduleCompression:
-        noRealOutputs = actionSpace.noActivities
-    else:
-        noRealOutputs = 0
-
 
     # output layers with losses
     outputs = []
     losses = []
+    for space in actionSpace.spaces:
+        if isinstance(space,spaces.MultiDiscrete):
+            for noVariants in space.nvec:
+                variantLayer = Dense(noVariants, activation='softmax')(previousLayer)
+                outputs.append(variantLayer)
+                losses.append('categorical_crossentropy')
+        elif isinstance(space,spaces.Box):
+            # output should range in box constraints
+            if space.is_bounded():
+                boxMean = np.mean([space.low,space.high],axis=0)
+                scheduleCompressionLayer = Dense(shape=space.shape, bias_initializer=Constant(value=boxMean))(
+                    previousLayer)
+                scheduleCompressionLayer2 = Lambda(lambda x: tf_minimum(tf_maximum(x, space.low), space.high))(
+                    scheduleCompressionLayer)
+                outputs.append(scheduleCompressionLayer2)
+                losses.append('mean_squared_error')
+            else:
+                raise NotImplementedError
+        else:
+            raise NotImplementedError
+    return outputs,losses
+
+
+
+
     for noVariants in categoricalOutputs:
         variantLayer = Dense(noVariants, activation='softmax')(previousLayer)
         outputs.append(variantLayer)
@@ -68,41 +89,39 @@ def oneHotEncode(actionList):
             outputs.append(encoding)
     return outputs
 
+def softmaxPredictionListToChoices(predictionList,kind='best'):
+    chosenVariants =[]
+
+    try:
+        for variantProbs in predictionList:
+            if isinstance(variantProbs,list) and len(variantProbs>1):
+                varNum = len(variantProbs)
+                if kind == 'random':
+                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
+                    chosenVariant = np.random.choice(range(varNum), 1, p=variantProbs)[0]
+                elif kind == 'best':
+                    chosenVariant = np.argmax(variantProbs)
+            else:
+                chosenVariant = 0
+            chosenVariants.append(chosenVariant)
+    except ValueError:
+        print('ERROR: variantProbs either NaN or non-negative:')
+        print(str(variantProbs))
+        raise ValueError
+
+    return chosenVariants
+
+
 def predictionToAction(prediction,actionSpace,kind):
     outputList = [np.squeeze(i) for i in prediction]
     output = outputList
+    action = ActionSpace.Action(actionSpace)
 
+    activityVariantProbs = output[:actionSpace.noActivities]
+    eventVariantProbs = output[actionSpace.noActivities:actionSpace.noActivities+actionSpace.noEvents]
 
-    activityVariantIndizes = []
-    try:
-        for i, varNum in enumerate(actionSpace.activityVariantNumbers):
-            variantProbs = output[i]
-            if varNum > 1:
-                if kind == 'random':
-                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
-                    chosenVariant = np.random.choice(range(len(variantProbs)), 1, p=variantProbs)[0]
-                elif kind == 'best':
-                    chosenVariant = np.argmax(variantProbs)
-            else:
-                chosenVariant = 0
-            activityVariantIndizes.append(chosenVariant)
-
-        eventVariantIndizes = []
-        for i, varNum in enumerate(actionSpace.eventVariantNumbers):
-            variantProbs = output[i + actionSpace.noActivities]
-            if varNum > 1:
-                if kind == 'random':
-                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sum up to 1
-                    chosenVariant = np.random.choice(range(len(variantProbs)), 1, p=variantProbs)[0]
-                elif kind == 'best':
-                    chosenVariant = np.argmax(variantProbs)
-            else:
-                chosenVariant = 0
-        eventVariantIndizes.append(chosenVariant)
-    except ValueError:
-        print('ERROR: variantProbs either NaN or non-negative')
-        print(str(output))
-        raise ValueError
+    activityVariantIndizes = softmaxPredictionListToChoices(activityVariantProbs)
+    eventVariantIndizes = softmaxPredictionListToChoices(eventVariantProbs)
 
     scheduleCompressionFactors = output[actionSpace.noActivities + actionSpace.noEvents:]
     if kind == 'random':

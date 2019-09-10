@@ -24,7 +24,7 @@ def actorCritic_VAE_RunAlgo(model=0, verbose = 2, hyperparams=0):
     policy = ActorCritic_VAE_Class.VAE_Policy(actionSpace)
 
     '''define baseline as average of 100 random actions'''
-    losses = [model.simulate_returnLoss(actionSpace.getRandomAction()) for i in range(100)]
+    losses = [model.simulate_returnLoss(actionSpace.sampleAction()) for i in range(100)]
     baseline = np.mean(losses)
     baseStd = np.std(losses)
     if verbose >= 1:

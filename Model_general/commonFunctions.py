@@ -5,8 +5,6 @@ def softmax(x):
     x = np.array(x)
     y = np.exp(x)/sum(np.exp(x))
     z=y
-    #z = np.floor(y*(2**30))#ensure softmax sums up to 1
-    #z = z/(2**30)
     z[0] = 1-sum(z[1:]) # ensure softmax sums up to 1
     return z
 
@@ -18,6 +16,9 @@ def probsFromLosses(losses,exploitationFactor=10):
     min_ = float(min(losses))
     max_ = float(max(losses))
     losses -= min_
+    if min_ == max_ :
+        print('all losses are the same')
+        return [1/len(losses) for i in losses]
     losses /= (max_ - min_)
     losses *= -1 #higher probability to lower loss
     #
