@@ -6,23 +6,17 @@ import random
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=True
+modelOptions.interface='VAE'
 model = generateModel(modelOptions)
 
 
 '''define start Population of genetic algorithm'''
 actionSpace = model.getActionSpace()
 genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss,100)
-if hasattr(model,'getGoodStartpoint') and actionSpace.withScheduleCompression == False:
-    startChromosome = model.getGoodStartpoint(actionSpace)
-else:
-    startChromosome = actionSpace.sampleZeroAction()
-genePool.appendToPop(startChromosome)
-print(model.simulateMean(startChromosome))
 
-random.seed()
 
 '''run genetic algorithm'''
 start = time.time()

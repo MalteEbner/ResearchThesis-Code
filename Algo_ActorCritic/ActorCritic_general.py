@@ -9,7 +9,6 @@ import numpy as np
 from gym import spaces
 
 def generatActionInputLayer(actionSpace):
-        
     # input Layers
     inputs = []
     for space in actionSpace.spaces:
@@ -22,8 +21,6 @@ def generatActionInputLayer(actionSpace):
                 inputs.append(scheduleLayer)
         else:
             raise NotImplementedError
-
-
 
     return inputs
 
@@ -55,40 +52,6 @@ def generateActionOutputLayer(actionSpace,previousLayer):
     return outputs,losses
 
 
-
-
-    for noVariants in categoricalOutputs:
-        variantLayer = Dense(noVariants, activation='softmax')(previousLayer)
-        outputs.append(variantLayer)
-        losses.append('categorical_crossentropy')
-    for i in range(noRealOutputs):
-        # output should range in 0.5 and 1.0
-        scheduleCompressionLayer = Dense(1, bias_initializer=Constant(value=0.75))(previousLayer)
-        scheduleCompressionLayer2 = Lambda(lambda x: tf_minimum(tf_maximum(x, 0.5), 1))(scheduleCompressionLayer)
-        # scheduleCompressionLayer3 = Lambda(lambda x: x,1))(scheduleCompressionLayer2)
-        outputs.append(scheduleCompressionLayer2)
-        losses.append('mean_squared_error')
-
-    return outputs, losses
-
-def oneHotEncode(actionList):
-    noActivities = actionList[0].actionSpace.noActivities
-    VariantNumbers = actionList[0].actionSpace.VariantNumbers()
-    variableListList = [
-    np.concatenate((action.activityIndizes, action.eventIndizes, action.scheduleCompressionFactors)) for action in actionList]
-    variables = np.array(variableListList)
-    outputs = []
-    for i in range(len(VariantNumbers)):
-        noVariants = VariantNumbers[i]
-        encoding = to_categorical(variables[:,i],num_classes=noVariants)
-        #encoding = expand_dims(encoding,axis=1)
-        outputs.append(encoding)
-    if actionList[0].actionSpace.withScheduleCompression:
-        for i in range(noActivities):
-            encoding = variables[:,len(VariantNumbers)+i]
-            outputs.append(encoding)
-    return outputs
-
 def softmaxPredictionListToChoices(predictionList,kind='best'):
     chosenVariants =[]
 
@@ -111,8 +74,28 @@ def softmaxPredictionListToChoices(predictionList,kind='best'):
 
     return chosenVariants
 
+def oneHotEncode(actionList):
+    noActivities = actionList[0].actionSpace.noActivities
+    VariantNumbers = actionList[0].actionSpace.VariantNumbers()
+    variableListList = [
+    np.concatenate((action.activityIndizes, action.eventIndizes, action.scheduleCompressionFactors)) for action in actionList]
+    variables = np.array(variableListList)
+    outputs = []
+    for i in range(len(VariantNumbers)):
+        noVariants = VariantNumbers[i]
+        encoding = to_categorical(variables[:,i],num_classes=noVariants)
+        #encoding = expand_dims(encoding,axis=1)
+        outputs.append(encoding)
+    if actionList[0].actionSpace.withScheduleCompression:
+        for i in range(noActivities):
+            encoding = variables[:,len(VariantNumbers)+i]
+            outputs.append(encoding)
+    return outputs
+
 
 def predictionToAction(prediction,actionSpace,kind):
+    raise NotImplementedError
+    '''
     outputList = [np.squeeze(i) for i in prediction]
     output = outputList
     action = ActionSpace.Action(actionSpace)
@@ -133,3 +116,4 @@ def predictionToAction(prediction,actionSpace,kind):
     newAction = ActionSpace.Action(actionSpace)
     newAction.saveDirectly(activityVariantIndizes, eventVariantIndizes, scheduleCompressionFactors)
     return newAction
+    '''

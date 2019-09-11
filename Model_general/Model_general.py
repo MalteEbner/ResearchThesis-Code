@@ -1,5 +1,6 @@
 import numpy as np
 from Interface import ActionSpace
+from Interface import ProjectActionSpace
 
 
 class Model_general:
@@ -13,8 +14,6 @@ class Model_general:
         if modelOptions.withEvents:
             self.simulate = self.simulateStepwise_withEvents  # the normal simulation is the one with events
 
-
-
     def orderedEventIDs(self):
         if self.events == []:
             return []
@@ -25,7 +24,7 @@ class Model_general:
     def getActionSpace(self):
         variantNumsActivities = [len(act.variants) for act in self.activities]
         variantNumsEvents = [len(self.events[eventID].eventOptions) for eventID in self.orderedEventIDs()]
-        actionSpace = ActionSpace.ActionSpace(variantNumsActivities, variantNumsEvents, self.modelOptions.withScheduleCompression)
+        actionSpace = ProjectActionSpace.ProjectActionSpace(variantNumsActivities, variantNumsEvents, self.modelOptions.withScheduleCompression)
         return actionSpace
 
 
@@ -33,9 +32,11 @@ class Model_general:
     def simulate(self, action, lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        activityIndizes = action.activityIndizes
+        activityIndizes = action.activityIndizes()
         if self.modelOptions.withScheduleCompression:
-            for activity, index, compression in zip(self.activities, activityIndizes, action.scheduleCompressionFactors):
+            for activity, index, compression in zip(self.activities, activityIndizes, action.scheduleCompressionFactors()):
+                if index >= len(activity.variants):
+                    I=0
                 activity.variants[index].simulate(compression)
         else:
             for activity, index in zip(self.activities, activityIndizes):
@@ -108,7 +109,7 @@ class Model_general:
     def simulateStepwise_withEvents(self,action,lossFunction=[]):
         if lossFunction == []:
             lossFunction = self.defaultLossFunction
-        activityIndizes = action.activityIndizes
+        activityIndizes = action.activityIndizes()
         eventOptionDict = action.eventIndizesAsDict(self.orderedEventIDs())
 
         chosenVariantIndizes = action.activityIndizes

@@ -2,14 +2,13 @@ import random
 import numpy as np
 from Model_general import commonFunctions
 from Interface import ActionSpace
+from gym import spaces
 
 
 class GeneticOpt():
 
     def __init__(self,actionSpace,lossFunction,initialPopSize=500):
 
-        self.variantNumbers = actionSpace.VariantNumbers()
-        self.noVariants = len(self.variantNumbers)
         self.actionSpace = actionSpace
         self.lossFunction = lossFunction
 
@@ -21,8 +20,7 @@ class GeneticOpt():
 
 
     def initializePopulation(self,popSize):
-        self.population = [Chromosome(self.actionSpace.sampleAction()) for i in range(popSize-1)]
-        self.appendToPop(self.actionSpace.sampleZeroAction())
+        self.population = [Chromosome(self.actionSpace.sample()) for i in range(popSize-1)]
 
     def appendToPop(self,action):
         self.population.append(Chromosome(action))
@@ -94,12 +92,12 @@ class GeneticOpt():
 class Chromosome(ActionSpace.Action):
     def __init__(self,action):
         super().__init__(action.actionSpace)
-        self.saveDirectly(action.activityIndizes,action.eventIndizes,action.scheduleCompressionFactors)
+        self.valuesList = action.valuesList
 
     def getCopiedChrom(self):
-        newAction = ActionSpace.Action(self.actionSpace)
-        newAction.saveDirectly(self.activityIndizes.copy(),self.eventIndizes.copy(),self.scheduleCompressionFactors.copy())
-        newChrom = Chromosome(newAction)
+        newChrom = Chromosome(self)
+        copiedValuesList = [values.copy() for values in self.valuesList]
+        newChrom.valuesList = copiedValuesList
         return newChrom
 
     def mutate(self,mutateProb):
@@ -110,38 +108,38 @@ class Chromosome(ActionSpace.Action):
         return newChrom
 
     def mutateWithoutCopying(self,mutateProb):
-        activityVariantNumbers = self.actionSpace.ActivityVariantNumbers()
-        for i in range(self.actionSpace.noActivities):
-            if random.random() < mutateProb:
-                self.activityIndizes[i] = random.randrange(activityVariantNumbers[i])
-            if self.actionSpace.withScheduleCompression:#random.random() < mutateProb:
-                newFactor = self.scheduleCompressionFactors[i] + random.uniform(-0.1,0.1)
-                newFactor = max(min(newFactor,1),0.5)
-                self.scheduleCompressionFactors[i] = newFactor
+        valuesList = []
+        for space ,values in zip(self.actionSpace.spaces,self.valuesList):
+            if isinstance(space, spaces.MultiDiscrete):
+                for index,noVariants in enumerate(space.nvec):
+                    if random.random() < mutateProb and noVariants>1:
+                        values[index] = random.randrange(0,noVariants-1)
+            elif isinstance(space, spaces.Box):
+                if space.is_bounded():
+                    for i in range(len(values)):
+                        values[i] += random.uniform(-0.1,0.1)
+                    values = np.maximum(space.low,np.minimum(space.high,values))
+                else:
+                    raise NotImplementedError
 
-        eventVariantNumbers = self.actionSpace.EventVariantNumbers()
-        for i in range(self.actionSpace.noEvents):
-            if random.random() < mutateProb:
-                self.eventIndizes[i] = random.randrange(eventVariantNumbers[i])
-
+            else:
+                raise NotImplementedError
+            valuesList.append(values)
+        self.valuesList = valuesList
         return self
 
 
     def cross(self, chromosomeB, probB=0.5):
         newChrom = self.getCopiedChrom()
-
-        for i in range(newChrom.actionSpace.noActivities):
-            #mutate activityIndex, scheduleCompression combination together
-            if random.random() < probB:
-                newChrom.activityIndizes[i] = chromosomeB.activityIndizes[i]
-                if self.actionSpace.withScheduleCompression:
-                    newChrom.scheduleCompressionFactors[i] = chromosomeB.scheduleCompressionFactors[i]
-
-
-        for i in range(newChrom.actionSpace.noEvents):
-            if random.random() < probB:
-                newChrom.eventIndizes[i] = chromosomeB.eventIndizes[i]
-
+        valuesList = []
+        for space, valuesA , valuesB in zip(self.actionSpace.spaces, newChrom.valuesList, chromosomeB.valuesList):
+            for i in range(len(valuesA)):
+                if random.random() < 0.5:
+                    valuesA[i] = valuesB[i]
+                    if valuesA[i]>5:
+                        i=1
+            valuesList.append(valuesA)
+        newChrom.valuesList = valuesList
         return newChrom
 
 
