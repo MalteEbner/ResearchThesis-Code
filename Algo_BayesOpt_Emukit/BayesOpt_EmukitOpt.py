@@ -2,12 +2,13 @@
 from Interface.generateModel import generateModel
 from Interface.Model_options import Model_options
 from Interface import ActionSpace
+from gym import spaces
 
 '''Optimization imports'''
 ### Necessary imports
 import time
 import numpy as np
-from emukit.core import  ParameterSpace, CategoricalParameter, OneHotEncoding
+from emukit.core import  ParameterSpace, CategoricalParameter, OneHotEncoding, ContinuousParameter
 from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 
 
@@ -23,12 +24,22 @@ actionSpace = model.getActionSpace()
 action = ActionSpace.Action(actionSpace)
 parameterList = []
 encodingList = []
-for index,varNumber in enumerate(actionSpace.VariantNumbers()):
-    options = range(varNumber)
-    encoding = OneHotEncoding(options)
-    encodingList.append(encoding)
-    categoricalParam = CategoricalParameter('paramName_'+str(index),encoding)
-    parameterList.append(categoricalParam)
+groupNumber = 0
+for space in actionSpace.spaces:
+    if isinstance(space, spaces.MultiDiscrete):
+        for index, noVariants in enumerate(space.nvec):
+            options = range(noVariants)
+            encoding = OneHotEncoding(options)
+            encodingList.append(encoding)
+            categoricalParam = CategoricalParameter('Param_%d_%d' % (groupNumber,index), encoding)
+            parameterList.append(categoricalParam)
+    elif isinstance(space, spaces.Box):
+        for index in range(space.shape[0]):
+            realParam = ContinuousParameter('Param_%d_%d' % (groupNumber,index),0.5,1)
+            parameterList.append(realParam)
+    else:
+        raise NotImplementedError
+    groupNumber +=1
 space = ParameterSpace(parameterList)
 
 
@@ -39,17 +50,18 @@ def encodingToInteger(row, encodingList):
     for encoding in encodingList:
         size = encoding.dimension
         oneHotVector = row[index:index+size]
-        index+=size
+        index += size
         integ = encoding.get_category(oneHotVector)
         integers.append(integ)
-    return integers
+    values = list(integers) + list(row[index:])
+    return values
 
 '''define objective function for emukit'''
 def emukit_friendly_objective_function(input_rows):
     losses = []
     for row in input_rows:
-        chosenOptionIndizes = encodingToInteger(row, encodingList)
-        action.saveIndizesCombined(np.asarray(chosenOptionIndizes))
+        values = encodingToInteger(row, encodingList)
+        action.saveEverythingCombined(values)
         loss = model.simulate_returnLoss(action)
         print('loss: ' + str(loss))
         losses.append([loss])

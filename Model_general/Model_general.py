@@ -112,7 +112,6 @@ class Model_general:
         activityIndizes = action.activityIndizes()
         eventOptionDict = action.eventIndizesAsDict(self.orderedEventIDs())
 
-        chosenVariantIndizes = action.activityIndizes
 
         self.Time = 0
         self.TimeDelay = 0
@@ -126,7 +125,7 @@ class Model_general:
 
             if self.TimeDelay == 0:
                 #do one step on all variants
-                for activity,chosenVariantIndex in zip(activities,chosenVariantIndizes):
+                for activity,chosenVariantIndex in zip(activities,activityIndizes):
                     if all(act.finished for act in activity.predecessors):
                         activity.variants[chosenVariantIndex].simulateStep(self)
             else:
