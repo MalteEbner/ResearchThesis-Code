@@ -2,11 +2,13 @@
 from Interface.generateModel import generateModel
 from Interface.Model_options import Model_options
 from Interface import ActionSpace
+from gym import spaces
 
 '''Optimization imports'''
 ### Necessary imports
 import time
 import GPyOpt
+
 
 
 '''generate Model with its options'''
@@ -20,19 +22,23 @@ model = generateModel(modelOptions)
 actionSpace = model.getActionSpace()
 action = ActionSpace.Action(actionSpace)
 mixed_domain = []
-for index,varNumber in enumerate(actionSpace.VariantNumbers()):
-    options = range(varNumber)
-    variable = {'name':'var_'+str(index),
-                'type':'categorical',
-               'domain': range(varNumber)}
-    mixed_domain.append(variable)
+inputs = []
+for space in actionSpace.spaces:
+    if isinstance(space, spaces.MultiDiscrete):
+        for index, noVariants in enumerate(space.nvec):
+            variable = {'name': 'var_' + str(index),
+                        'type': 'categorical',
+                        'domain': range(noVariants)}
+            mixed_domain.append(variable)
+    elif isinstance(space, spaces.Box):
+        for index in range(space.shape):
+            variable = {'name': 'compression_var_' + str(index),
+                        'type': 'continuous',
+                        'domain': (0.5, 1)}
+            mixed_domain.append(variable)
+    else:
+        raise NotImplementedError
 
-if modelOptions.withScheduleCompression:
-    for index in range(actionSpace.noActivities):
-        variable = {'name':'compression_var_'+str(index),
-                    'type':'continuous',
-                    'domain':(0.5,1)}
-        mixed_domain.append(variable)
 
 
 '''define objective function '''
@@ -56,9 +62,11 @@ print('time needed: ' + str(end-start))
 myBopt.plot_convergence()
 
 bestX = myBopt.x_opt
+
 action.saveEverythingCombined(bestX)
 print("best input: " + str(bestX))
 print("performance of best: " + str(model.simulateMean(action)))
 print("end of optimization")
+
 
 

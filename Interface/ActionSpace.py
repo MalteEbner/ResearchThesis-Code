@@ -25,6 +25,19 @@ class Action:
         else:
             self.valuesList = samples
 
+    def saveEverythingCombined(self,valuesAsOneList):
+        self.valuesList = []
+        noVarsSoFar = 0
+        for space in self.actionSpace.spaces:
+            noVars = space.shape[0]
+            values = valuesAsOneList[noVarsSoFar:noVarsSoFar+noVars]
+            noVarsSoFar += noVars
+            if isinstance(space,spaces.MultiDiscrete):
+                values = [int(value) for value in values]
+            self.valuesList.append(values)
+
+
+
     def encodeOneHot(self):
         action = []
         for space ,values in zip(self.actionSpace.spaces,self.valuesList):
