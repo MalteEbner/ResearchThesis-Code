@@ -22,7 +22,6 @@ model = generateModel(modelOptions)
 actionSpace = model.getActionSpace()
 action = ActionSpace.Action(actionSpace)
 mixed_domain = []
-inputs = []
 for space in actionSpace.spaces:
     if isinstance(space, spaces.MultiDiscrete):
         for index, noVariants in enumerate(space.nvec):
