@@ -12,7 +12,7 @@ from tensorflow.keras import backend as K
 from Algo_ActorCritic import ActorCritic_general
 from Algo_ActorCritic.ActorCritic_Class import Policy
 from tensorflow.keras.losses import mse, categorical_crossentropy
-from Algo_VAE import VAE
+from Interface_VAE import VAE
 
 
 
