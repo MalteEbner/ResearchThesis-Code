@@ -93,8 +93,8 @@ class VAE_Model:
 
     def latentActionToAction(self,actions,kind):
         encodedActions = ActorCritic_general.oneHotEncode(actions)
-        prediction = self.decoder.predict(encodedActions)
-        action = ActorCritic_general.predictionToAction(prediction,self.actionSpace,kind)
+        predictions = self.decoder.predict(encodedActions)
+        action = ActorCritic_general.predictionsToActions(predictions,self.actionSpace,kind)
         return action
 
     def update(self, actions, learningRate):

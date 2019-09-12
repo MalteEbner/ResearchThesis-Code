@@ -15,14 +15,14 @@ model = generateModel(modelOptions)
 
 '''define start Population of genetic algorithm'''
 actionSpace = model.getActionSpace()
-genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss,100)
+genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss_onBatch,100)
 
 
 '''run genetic algorithm'''
 start = time.time()
 for i in range(3600):
     bestAction = genePool.generateNewPop()
-    if i%10 == 0:
+    if i%1 == 0:
         print(str(i) + ":  " + str(model.simulate(bestAction)) + ' time:' + str(time.time()-start))
 end = time.time()
 print('time needed: ' + str(end-start))

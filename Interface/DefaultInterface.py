@@ -18,6 +18,11 @@ class DefaultInterface():
         performances = self.projectModel.simulate(projectAction)
         return performances
 
+
     def simulate_returnLoss(self,*args):
-        return self.simulate(*args)[0]
+        loss = self.simulate(*args)[0]
+        return loss
+
+    def simulate_returnLoss_onBatch(self,actions):
+        return [self.simulate(action)[0] for action in actions]
 
