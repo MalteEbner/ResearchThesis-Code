@@ -81,7 +81,7 @@ celerybeat-schedule
 # Environments
 .env
 .venv
-.venv_windows10
+venv_windows10/
 env/
 venv/
 ENV/
