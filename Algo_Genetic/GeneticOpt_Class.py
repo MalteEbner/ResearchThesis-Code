@@ -26,7 +26,7 @@ class GeneticOpt():
         self.population.append(Chromosome(action))
 
     def generateNewPop(self):
-        losses = [self.lossFunction(chrom) for chrom in self.population]
+        losses = self.lossFunction(self.population)
         soFarBestChromosome = self.population[np.argmin(losses)]
         matePopIndices, elitePopIndices = self.selection(losses)
         self.population = self.breedPopulation(matePopIndices,elitePopIndices)
@@ -116,11 +116,11 @@ class Chromosome(ActionSpace.Action):
                         values[index] = random.randrange(0,noVariants-1)
             elif isinstance(space, spaces.Box):
                 if space.is_bounded():
-                    for i in range(len(values)):
-                        values[i] += random.uniform(-0.1,0.1)
-                    values = np.maximum(space.low,np.minimum(space.high,values))
-                else:
-                    raise NotImplementedError
+                    values += np.random.uniform(-0.1,0.1,len(values))
+                    values = np.maximum(space.low, np.minimum(space.high, values))
+                else:  # assumes space is unbounded on both sides
+                    values += np.random.normal(loc=0,scale=0.1,size=len(values))
+
 
             else:
                 raise NotImplementedError

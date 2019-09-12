@@ -52,12 +52,13 @@ def generateActionOutputLayer(actionSpace,previousLayer):
     return outputs,losses
 
 
-def softmaxPredictionListToChoices(predictionList,kind='best'):
+def softmaxPredictionListToChoices(predictionNDarray,kind='best'):
     chosenVariants =[]
-
+    if len(predictionNDarray.shape)==1:
+        predictionNDarray = np.expand_dims(predictionNDarray,0)
     try:
-        for variantProbs in predictionList:
-            if isinstance(variantProbs,list) and len(variantProbs>1):
+        for variantProbs in predictionNDarray:
+            if hasattr(variantProbs, '__iter__') and len(variantProbs)>1:
                 varNum = len(variantProbs)
                 if kind == 'random':
                     variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
@@ -65,7 +66,7 @@ def softmaxPredictionListToChoices(predictionList,kind='best'):
                 elif kind == 'best':
                     chosenVariant = np.argmax(variantProbs)
             else:
-                chosenVariant = 0
+                chosenVariant=0
             chosenVariants.append(chosenVariant)
     except ValueError:
         print('ERROR: variantProbs either NaN or non-negative:')
@@ -75,45 +76,67 @@ def softmaxPredictionListToChoices(predictionList,kind='best'):
     return chosenVariants
 
 def oneHotEncode(actionList):
-    noActivities = actionList[0].actionSpace.noActivities
-    VariantNumbers = actionList[0].actionSpace.VariantNumbers()
-    variableListList = [
-    np.concatenate((action.activityIndizes, action.eventIndizes, action.scheduleCompressionFactors)) for action in actionList]
-    variables = np.array(variableListList)
+    actionSpace = actionList[0].actionSpace
     outputs = []
-    for i in range(len(VariantNumbers)):
-        noVariants = VariantNumbers[i]
-        encoding = to_categorical(variables[:,i],num_classes=noVariants)
-        #encoding = expand_dims(encoding,axis=1)
-        outputs.append(encoding)
-    if actionList[0].actionSpace.withScheduleCompression:
-        for i in range(noActivities):
-            encoding = variables[:,len(VariantNumbers)+i]
+    variableList = [np.concatenate(action.valuesList) for action in actionList]
+    variables = np.array(variableList)
+    noVarsSoFar = 0
+    for space in actionSpace.spaces:
+        if isinstance(space,spaces.MultiDiscrete):
+            for noVariants in space.nvec:
+                encoding = to_categorical(variables[:, noVarsSoFar], num_classes=noVariants)
+                # encoding = expand_dims(encoding,axis=1)
+                outputs.append(encoding)
+                noVarsSoFar +=1
+        elif isinstance(space,spaces.Box):
+            encoding = variables[:, noVarsSoFar:noVarsSoFar+space.shape[0]]
+            # encoding = expand_dims(encoding,axis=1)
             outputs.append(encoding)
+            noVarsSoFar += space.shape[0]
+        else:
+            raise NotImplementedError
     return outputs
 
 
-def predictionToAction(prediction,actionSpace,kind):
-    raise NotImplementedError
-    '''
-    outputList = [np.squeeze(i) for i in prediction]
+def predictionsToActions(predictions,actionSpace,kind):
+    noActions = predictions[0].shape[0]
+    outputList = [np.squeeze(i) for i in predictions]
     output = outputList
-    action = ActionSpace.Action(actionSpace)
+    actions = [ActionSpace.Action(actionSpace) for i in range(noActions)]
+    for action in actions:
+        action.valuesList = [[] for i in actionSpace.spaces]
 
-    activityVariantProbs = output[:actionSpace.noActivities]
-    eventVariantProbs = output[actionSpace.noActivities:actionSpace.noActivities+actionSpace.noEvents]
 
-    activityVariantIndizes = softmaxPredictionListToChoices(activityVariantProbs)
-    eventVariantIndizes = softmaxPredictionListToChoices(eventVariantProbs)
+    noVarsSoFar = 0
+    for spaceIndex, space in enumerate(actionSpace.spaces):
 
-    scheduleCompressionFactors = output[actionSpace.noActivities + actionSpace.noEvents:]
-    if kind == 'random':
-        scheduleCompressionFactors += np.random.uniform(-0.1, 0.1, len(scheduleCompressionFactors))
-    scheduleCompressionFactors = [i.item(0) for i in scheduleCompressionFactors]
-    scheduleCompressionFactors = np.maximum(scheduleCompressionFactors, 0.5)
-    scheduleCompressionFactors = np.minimum(scheduleCompressionFactors, 1)
 
-    newAction = ActionSpace.Action(actionSpace)
-    newAction.saveDirectly(activityVariantIndizes, eventVariantIndizes, scheduleCompressionFactors)
-    return newAction
-    '''
+
+        if isinstance(space,spaces.MultiDiscrete):
+            for variantNum in space.nvec:
+                noVars = 1
+                values = output[noVarsSoFar:noVarsSoFar + noVars][0]
+                indizes = softmaxPredictionListToChoices(values, kind)
+                noVarsSoFar += noVars
+                for index, action in enumerate(actions):
+                    action.valuesList[spaceIndex].append(indizes[index])
+
+        elif isinstance(space,spaces.Box):
+            noVars = space.shape[0]
+            values = output[noVarsSoFar:noVarsSoFar + noVars]
+            noVarsSoFar += noVars
+            if kind == 'random':
+                values += np.random.uniform(-0.1, 0.1, len(values))
+                values = np.maximum(space.low,values)
+                values = np.minimum(space.high,values)
+                values = values[0]
+            if len(values.shape)==1:
+                values = np.expand_dims(values,0)
+            for index, action in enumerate(actions):
+                valuesToSave = values[index, :]
+                action.valuesList[spaceIndex] += list(valuesToSave)
+
+        else:
+            raise NotImplementedError
+
+    return actions
