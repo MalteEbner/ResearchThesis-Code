@@ -63,8 +63,9 @@ class Action:
                 if space.is_bounded():
                     if any(values < space.low) or any(values > space.high):
                         return False
-                else:
-                    raise NotImplementedError
+                else: #assume space is unbounded
+                    pass
+
             else:
                 raise NotImplementedError
         return True

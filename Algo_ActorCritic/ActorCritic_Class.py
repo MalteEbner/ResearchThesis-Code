@@ -80,8 +80,9 @@ class Policy:
             inputState = np.ones((1,1))
         #output is a probability distribution for all categorical outputs
         outputPrediction = self.model.predict(inputState)
-
-        action = ActorCritic_general.predictionsToActions([outputPrediction],self.actionSpace,kind)
+        if len(outputPrediction[0].shape)==1:
+            outputPrediction = [outputPrediction]
+        action = ActorCritic_general.predictionsToActions(outputPrediction,self.actionSpace,kind)
         return action[0]
 
     def sampleAction(self,inputState=0):
