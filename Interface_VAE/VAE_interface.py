@@ -7,10 +7,12 @@ import numpy as np
 
 
 class VAE_Interface(DefaultInterface.DefaultInterface):
-    def __init__(self, projectModel,latentDim=16):
+    def __init__(self, projectModel,latentDim=8):
         self.projectModel = projectModel
         self.actionSpace = ActionSpace.ActionSpace([spaces.Box(-np.inf,np.inf,shape=(latentDim,)),])
         self.VAE = VAE_Model(projectModel.getActionSpace(),latentDim)
+        self.baseline = 0
+        self.baselineUpdateFactor = 0.01
 
 
     def simulate(self,latentAction_s,kind='random',learningRateVAE = 0.01):
@@ -32,16 +34,15 @@ class VAE_Interface(DefaultInterface.DefaultInterface):
 
         performances = [self._simulateOnProject(action) for action in actions]
 
-        #update VAE on subset of all actions
-        noActions = len(actions)
+        # update baseline
         losses = [perf[0] for perf in performances]
-        bestActionNumber = int(noActions*0.3)
-        if bestActionNumber>0:
-            bestActionIndizes = np.argpartition(losses, bestActionNumber)[:bestActionNumber]
-            bestActions = [actions[index] for index in bestActionIndizes]
-        else:
-            bestActions = actions
-        self.VAE.update(bestActions,learningRateVAE)
+        meanLoss = np.mean(losses)
+        self.baseline += self.baselineUpdateFactor*(meanLoss-self.baseline)
+
+        # only train VAE on good actions
+        goodActions = [actions[i] for i in range(len(losses)) if losses[i]<self. baseline]
+        if len(goodActions)>0:
+            self.VAE.update(goodActions,learningRateVAE)
 
         return performances
 
