@@ -13,9 +13,9 @@ from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = True
-modelOptions.withScheduleCompression=True
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions.probabilistic = False
+modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)
 
 
@@ -82,7 +82,7 @@ rf_model = RandomForest(X_init, Y_init)
 loop = BayesianOptimizationLoop(space,rf_model)
 
 start = time.time()
-loop.run_loop(emukit_friendly_objective_function, 10)
+loop.run_loop(emukit_friendly_objective_function, 1000)
 end = time.time()
 print('time needed: ' + str(end-start))
 

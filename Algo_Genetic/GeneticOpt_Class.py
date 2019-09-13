@@ -116,7 +116,7 @@ class Chromosome(ActionSpace.Action):
                         values[index] = random.randrange(0,noVariants-1)
             elif isinstance(space, spaces.Box):
                 if space.is_bounded():
-                    values += np.random.uniform(-0.1,0.1,len(values))
+                    values += np.random.normal(0,0.05,len(values))
                     values = np.maximum(space.low, np.minimum(space.high, values))
                 else:  # assumes space is unbounded on both sides
                     values += np.random.normal(loc=0,scale=0.1,size=len(values))
