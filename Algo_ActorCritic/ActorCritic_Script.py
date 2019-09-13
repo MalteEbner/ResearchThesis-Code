@@ -6,12 +6,11 @@ from Interface.Model_options import Model_options
 withVAE = True
 
 '''generate Model with its options'''
-modelOptions = Model_options('Refinery')  # type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
-modelOptions.withScheduleCompression = False
+modelOptions.withScheduleCompression=False
+modelOptions.interface='VAE'
 model = generateModel(modelOptions)
-if withVAE:
-    model = VAE_interface.VAE_Interface(model)
 
 
 res = actorCritic_RunAlgo(model)

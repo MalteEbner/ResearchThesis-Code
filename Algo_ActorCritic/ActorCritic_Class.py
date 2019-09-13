@@ -8,6 +8,7 @@ from tensorflow.keras import optimizers
 from keras.initializers import Constant
 from tensorflow.keras.utils import plot_model
 from Algo_ActorCritic import ActorCritic_general
+from gym import spaces
 
 
 
@@ -59,12 +60,18 @@ class Policy:
 
     def update(self,outputActions,updateWeights,input=0):
         noSamples = len(outputActions)
-        noOutputs = int(outputActions[0].actionSpace.NoAllVariables())
-        noScheduleCompressionFactors = len(outputActions[0].scheduleCompressionFactors)
+        actionSpace = outputActions[0].actionSpace
+        sampleWeights = []
+        for space in actionSpace.spaces:
+            if isinstance(space, spaces.MultiDiscrete):
+                sampleWeights += [updateWeights]*len(space.nvec)
+            elif isinstance(space, spaces.Box):
+                sampleWeights += [np.maximum(updateWeights,0)]
+            else:
+                raise NotImplementedError
         if input == 0:
             inputs = np.ones((noSamples,1))
         outputs = ActorCritic_general.oneHotEncode(outputActions)
-        sampleWeights =[updateWeights]*(noOutputs-noScheduleCompressionFactors) + [np.maximum(updateWeights,0)]*noScheduleCompressionFactors
         self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
 
 
@@ -74,8 +81,8 @@ class Policy:
         #output is a probability distribution for all categorical outputs
         outputPrediction = self.model.predict(inputState)
 
-        action = ActorCritic_general.predictionToAction(outputPrediction,self.actionSpace,kind)
-        return action
+        action = ActorCritic_general.predictionsToActions([outputPrediction],self.actionSpace,kind)
+        return action[0]
 
     def sampleAction(self,inputState=0):
         nextAction = self.getAction('random',inputState=inputState)

@@ -124,6 +124,7 @@ def predictionsToActions(predictions,actionSpace,kind):
         elif isinstance(space,spaces.Box):
             noVars = space.shape[0]
             values = output[noVarsSoFar:noVarsSoFar + noVars]
+            values += np.zeros(len(values))
             noVarsSoFar += noVars
             if kind == 'random':
                 values += np.random.uniform(-0.1, 0.1, len(values))
