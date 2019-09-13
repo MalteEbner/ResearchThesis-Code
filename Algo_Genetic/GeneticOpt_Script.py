@@ -8,21 +8,21 @@ import random
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=True
-modelOptions.interface='VAE'
+modelOptions.withScheduleCompression=False
+#modelOptions.interface='VAE'
 model = generateModel(modelOptions)
 
 
 '''define start Population of genetic algorithm'''
 actionSpace = model.getActionSpace()
-genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss_onBatch,100)
+genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss_onBatch,200)
 
 
 '''run genetic algorithm'''
 start = time.time()
 for i in range(3600):
     bestAction = genePool.generateNewPop()
-    if i%1 == 0:
+    if i%10 == 0:
         print(str(i) + ":  " + str(model.simulate(bestAction)) + ' time:' + str(time.time()-start))
 end = time.time()
 print('time needed: ' + str(end-start))

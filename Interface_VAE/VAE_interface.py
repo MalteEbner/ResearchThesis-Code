@@ -7,7 +7,7 @@ import numpy as np
 
 
 class VAE_Interface(DefaultInterface.DefaultInterface):
-    def __init__(self, projectModel,latentDim=4):
+    def __init__(self, projectModel,latentDim=16):
         self.projectModel = projectModel
         self.actionSpace = ActionSpace.ActionSpace([spaces.Box(-np.inf,np.inf,shape=(latentDim,)),])
         self.VAE = VAE_Model(projectModel.getActionSpace(),latentDim)

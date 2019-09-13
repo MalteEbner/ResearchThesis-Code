@@ -12,8 +12,8 @@ from gym import spaces
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = True
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)
 
@@ -58,6 +58,6 @@ def objectiveFunction(varDict):
 '''
 do the optimization
 '''
-best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=400)
+best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=4000)
 
 print("Best: " + str(objectiveFunction(best)))
