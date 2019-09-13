@@ -31,6 +31,7 @@ class Policy:
 
 
     def defineModel(self):
+        verbose = False
         '''Model definition of neural network'''
         #input layer
         inputs = Input(shape=self.inputShapeState)
@@ -51,8 +52,9 @@ class Policy:
 
         self.model = model
 
-        #plot model with graphviz
-        plot_model(model, to_file='model.png',show_shapes=True)
+        if verbose:
+            #plot model with graphviz
+            plot_model(model, to_file='model.png',show_shapes=True)
 
 
     def update(self,outputActions,updateWeights,input=0):
