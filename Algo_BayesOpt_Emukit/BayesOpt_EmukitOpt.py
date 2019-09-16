@@ -77,7 +77,6 @@ def emukit_friendly_objective_function(input_rows):
         global noIter
         noIter +=1
         global start
-        noIter = 0
         timeDiff = time.time()-start
         print('Iter: %d, loss: %f, time: %f' % (noIter,loss,timeDiff))
 
