@@ -27,7 +27,7 @@ def loadActivityData(filename,modelOptions):
             for variantIndex in range(4):
                 durationColumn = variantIndex*5+4
                 duration = sheet[durationColumn][activityIndex]
-                if duration > 0: #if there exists a variant
+                if duration >= 0: #if there exists a variant
                     cost = sheet[durationColumn+1][activityIndex]
                     technology = sheet[durationColumn+2][activityIndex]
                     quality = sheet[durationColumn+3][activityIndex]

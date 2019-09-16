@@ -58,7 +58,7 @@ class Variant_RollerCoaster(Model_general.Variant):
         return factor
 
 
-    def simulate_RollerCoaster(self,model,compressionFactor=1):
+    def simulate_RollerCoaster(self,compressionFactor=1):
         self.ensureStartpoint()
         if self.modelOptions.probabilistic:
             factor = self.getPertFactor()

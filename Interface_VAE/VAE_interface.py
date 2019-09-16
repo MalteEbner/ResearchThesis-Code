@@ -7,7 +7,7 @@ import numpy as np
 
 
 class VAE_Interface(DefaultInterface.DefaultInterface):
-    def __init__(self, projectModel,latentDim=8):
+    def __init__(self, projectModel,latentDim=16):
         self.projectModel = projectModel
         self.actionSpace = ActionSpace.ActionSpace([spaces.Box(-np.inf,np.inf,shape=(latentDim,)),])
         self.VAE = VAE_Model(projectModel.getActionSpace(),latentDim)
@@ -15,7 +15,7 @@ class VAE_Interface(DefaultInterface.DefaultInterface):
         self.baselineUpdateFactor = 0.01
 
 
-    def simulate(self,latentAction_s,kind='random',learningRateVAE = 0.01):
+    def simulate(self,latentAction_s,kind='random',learningRateVAE = 0.001):
         if isinstance(latentAction_s,ActionSpace.Action):
             performances = self.simulate_onBatch([latentAction_s],kind,learningRateVAE)[0]
         elif isinstance(latentAction_s,list):
