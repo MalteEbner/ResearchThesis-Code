@@ -58,7 +58,7 @@ class Policy:
             plot_model(model, to_file='model.png',show_shapes=True)
 
 
-    def update(self,outputActions,updateWeights,input=0):
+    def update(self,outputActions,updateWeights,inputs=0):
         noSamples = len(outputActions)
         actionSpace = outputActions[0].actionSpace
         sampleWeights = []
@@ -69,23 +69,24 @@ class Policy:
                 sampleWeights += [np.maximum(updateWeights,0)]
             else:
                 raise NotImplementedError
-        if input == 0:
+        if inputs == 0:
             inputs = np.ones((noSamples,1))
         outputs = ActorCritic_general.oneHotEncode(outputActions)
         self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
 
-    def update_Binary(self,outputActions,updateWeights):
+    def update_Binary(self,outputActions,updateWeights,inputs=0):
         noSamples = len(outputActions)
         actionSpace = outputActions[0].actionSpace
 
         sampleWeights=updateWeights
 
         outputActions = [action for action,weight in zip(outputActions,updateWeights) if weight > 0]
-        outputs = ActorCritic_general.oneHotEncode(outputActions)
+        if len(outputActions)>0:
+            outputs = ActorCritic_general.oneHotEncode(outputActions)
 
-        if input == 0:
-            inputs = np.ones((noSamples,1))
-        self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
+            if inputs == 0:
+                inputs = np.ones((len(outputActions),1))
+            self.model.train_on_batch([inputs],outputs)
 
 
     def getAction(self,kind,inputState):
