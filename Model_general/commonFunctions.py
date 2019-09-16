@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from Interface import ActionSpace
 
 def softmax(x):
     x = np.array(x)
@@ -46,4 +47,10 @@ def scheduleCompressionCostIncrease(timeFactor):
     else:
         costFactor = 560.7 * np.exp(-9.43*timeFactor)+0.955
     return costFactor
+
+def printPerformanceOfVariantList(model,variants):
+    action = ActionSpace.Action(model.getActionSpace())
+    action.valuesList = [variants]
+    perf = model.simulateMean(action)
+    return perf
 
