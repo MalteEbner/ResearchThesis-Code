@@ -31,3 +31,8 @@ class DefaultInterface():
         performances = self.projectModel.simulateMean(projectAction)
         return performances
 
+    def printAllAboutAction(self,action):
+        print('action: ' + str(action))
+        print('performances: ' + str(self.simulateMean(action)))
+
+
