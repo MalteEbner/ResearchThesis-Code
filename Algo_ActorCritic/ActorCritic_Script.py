@@ -9,7 +9,7 @@ withVAE = True
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
-modelOptions.interface='VAE'
+#modelOptions.interface='VAE'
 model = generateModel(modelOptions)
 
 
