@@ -1,4 +1,5 @@
 from Interface import ActionSpace, ProjectActionSpace
+import numpy as np
 
 class DefaultInterface():
     def __init__(self,projectModel):
@@ -27,9 +28,10 @@ class DefaultInterface():
         return [self.simulate(action)[0] for action in actions]
 
     def simulateMean(self,action):
-        projectAction = self.actionToProjectAction(action)
-        performances = self.projectModel.simulateMean(projectAction)
-        return performances
+        performancesList = [self.simulate(action) for i in range(10)]
+        meanPerformance = np.mean(performancesList,axis=0)
+        meanPerformance = np.round(meanPerformance,2)
+        return meanPerformance
 
     def printAllAboutAction(self,action):
         print('action: ' + str(action))
