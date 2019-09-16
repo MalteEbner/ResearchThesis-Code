@@ -25,8 +25,8 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         print('baseline:' + str(baseline) + " baseline_std: " + str(baseStd))
 
     '''hyperparams'''
-    batchSize = hyperparams.get('batchSize',16)
-    noSamples = hyperparams.get('noSamples',80000)
+    batchSize = hyperparams.get('batchSize',4)
+    noSamples = hyperparams.get('noSamples',32)
     noIterations = int(noSamples/batchSize)
     verboseNoIterations = max(int(128/batchSize),1)
     baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.1)
@@ -50,8 +50,8 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         baseline += baselineUpdateFactor*(np.mean(losses)-baseline)
         #update policy
         advantages = (baseline-losses)/baseStd
-        advantages -= explorationFactor #keep exploring
-        policy.update(actions,advantages)
+        #advantages -= explorationFactor #keep exploring
+        policy.update_Binary(actions,advantages)
 
         #update rates
         explorationFactor *= explorationDecayFactor
