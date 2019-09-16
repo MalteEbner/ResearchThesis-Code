@@ -74,6 +74,19 @@ class Policy:
         outputs = ActorCritic_general.oneHotEncode(outputActions)
         self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
 
+    def update_Binary(self,outputActions,updateWeights):
+        noSamples = len(outputActions)
+        actionSpace = outputActions[0].actionSpace
+
+        sampleWeights=updateWeights
+
+        outputActions = [action for action,weight in zip(outputActions,updateWeights) if weight > 0]
+        outputs = ActorCritic_general.oneHotEncode(outputActions)
+
+        if input == 0:
+            inputs = np.ones((noSamples,1))
+        self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
+
 
     def getAction(self,kind,inputState):
         if inputState == 0:
