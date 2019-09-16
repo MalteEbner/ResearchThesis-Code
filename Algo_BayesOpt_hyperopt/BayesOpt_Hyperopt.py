@@ -15,6 +15,7 @@ from gym import spaces
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
+#modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
 
@@ -44,20 +45,22 @@ for space in actionSpace.spaces:
 '''
 objective Function with variable translation
 '''
-
-
-def objectiveFunction(varDict):
+def varDictToAction(varDict):
     vars = [varDict[str(key)] for key in sorted(varDict.keys(),key = int)]
     action = ActionSpace.Action(actionSpace)
     action.saveEverythingCombined(vars)
-    if not action.checkIfValuesInRange():
-        i=0
+    return action
+
+def objectiveFunction(varDict):
+    action = varDictToAction(varDict)
     loss = model.simulate_returnLoss(action)
     return loss
 
 '''
 do the optimization
 '''
-best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=4000)
+best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=40)
 
-print("Best: " + str(objectiveFunction(best)))
+
+bestAction = varDictToAction(best)
+model.printAllAboutAction(bestAction)
