@@ -4,6 +4,9 @@ from Interface.Model_options import Model_options
 from Interface import ActionSpace
 from gym import spaces
 
+
+
+
 '''Optimization imports'''
 ### Necessary imports
 import time
@@ -11,11 +14,16 @@ import numpy as np
 from emukit.core import  ParameterSpace, CategoricalParameter, OneHotEncoding, ContinuousParameter
 from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 
+'''Ignore warning'''
+import warnings
+from sklearn.exceptions import DataConversionWarning
+warnings.filterwarnings(action='ignore',category=DataConversionWarning)
+
 
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=True
+modelOptions.withScheduleCompression=False
 #modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
@@ -83,7 +91,7 @@ rf_model = RandomForest(X_init, Y_init)
 loop = BayesianOptimizationLoop(space,rf_model)
 
 start = time.time()
-loop.run_loop(emukit_friendly_objective_function, 1)
+loop.run_loop(emukit_friendly_objective_function, 5)
 end = time.time()
 print('time needed: ' + str(end-start))
 
