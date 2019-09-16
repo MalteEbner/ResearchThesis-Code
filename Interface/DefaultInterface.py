@@ -26,3 +26,8 @@ class DefaultInterface():
     def simulate_returnLoss_onBatch(self,actions):
         return [self.simulate(action)[0] for action in actions]
 
+    def simulateMean(self,action):
+        projectAction = self.actionToProjectAction(action)
+        performances = self.projectModel.simulateMean(projectAction)
+        return performances
+
