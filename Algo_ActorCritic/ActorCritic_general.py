@@ -129,7 +129,7 @@ def predictionsToActions(predictions,actionSpace,kind):
                 values += np.random.uniform(-0.1, 0.1, len(values))
                 values = np.maximum(space.low,values)
                 values = np.minimum(space.high,values)
-                values = values[0]
+            values = values[0]
             if len(values.shape)==1:
                 values = np.expand_dims(values,0)
             for index, action in enumerate(actions):
