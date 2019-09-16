@@ -13,9 +13,9 @@ from gym import spaces
 
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=False
-#modelOptions.interface = "VAE"
+modelOptions.probabilistic = True
+modelOptions.withScheduleCompression=True
+modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
 

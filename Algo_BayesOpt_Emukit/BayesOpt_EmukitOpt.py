@@ -15,7 +15,8 @@ from emukit.bayesian_optimization.loops import BayesianOptimizationLoop
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=False
+modelOptions.withScheduleCompression=True
+#modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
 
@@ -44,7 +45,7 @@ space = ParameterSpace(parameterList)
 
 
 
-def encodingToInteger(row, encodingList):
+def encodingToAction(row, encodingList):
     index = 0
     integers = []
     for encoding in encodingList:
@@ -54,14 +55,14 @@ def encodingToInteger(row, encodingList):
         integ = encoding.get_category(oneHotVector)
         integers.append(integ)
     values = list(integers) + list(row[index:])
-    return values
+    action.saveEverythingCombined(values)
+    return action
 
 '''define objective function for emukit'''
 def emukit_friendly_objective_function(input_rows):
     losses = []
     for row in input_rows:
-        values = encodingToInteger(row, encodingList)
-        action.saveEverythingCombined(values)
+        action = encodingToAction(row, encodingList)
         loss = model.simulate_returnLoss(action)
         print('loss: ' + str(loss))
         losses.append([loss])
@@ -82,15 +83,14 @@ rf_model = RandomForest(X_init, Y_init)
 loop = BayesianOptimizationLoop(space,rf_model)
 
 start = time.time()
-loop.run_loop(emukit_friendly_objective_function, 1000)
+loop.run_loop(emukit_friendly_objective_function, 1)
 end = time.time()
 print('time needed: ' + str(end-start))
 
 '''get results'''
 bestIteration = np.argmin(loop.loop_state.Y)
 bestPointEncoded = loop.loop_state.X[bestIteration]
-bestPoint = encodingToInteger(bestPointEncoded,encodingList)
-bestLoss = loop.loop_state.Y[bestIteration]
-print('best: loss: ' + str(bestLoss) + ' point: ' + str(bestPoint))
+bestAction = encodingToAction(bestPointEncoded,encodingList)
+model.printAllAboutAction(bestAction)
 
 print("end of optimization")

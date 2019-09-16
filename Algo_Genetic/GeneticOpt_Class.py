@@ -80,13 +80,11 @@ class GeneticOpt():
 
         return childPop
 
-    def getBestPop(self,losses=[],lossFunction=[]):
-        if lossFunction==[]:
-            lossFunction = self.lossFunction
-        if losses==[]:
-            losses = [lossFunction(chrom) for chrom in self.population]
-        bestIndex = np.argmin(losses)
-        return self.population[bestIndex]
+    def getBestPop(self):
+        losses = self.lossFunction(self.population)
+        bestLossIndex = np.argmin(losses)
+        bestPop = self.population[bestLossIndex]
+        return bestPop
 
 
 class Chromosome(ActionSpace.Action):
