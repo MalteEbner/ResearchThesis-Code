@@ -67,12 +67,20 @@ def encodingToAction(row, encodingList):
     return action
 
 '''define objective function for emukit'''
+noIter = 0
 def emukit_friendly_objective_function(input_rows):
     losses = []
     for row in input_rows:
         action = encodingToAction(row, encodingList)
         loss = model.simulate_returnLoss(action)
-        print('loss: ' + str(loss))
+
+        global noIter
+        noIter +=1
+        global start
+        noIter = 0
+        timeDiff = time.time()-start
+        print('Iter: %d, loss: %f, time: %f' % (noIter,loss,timeDiff))
+
         losses.append([loss])
     return np.array(losses)
 
@@ -81,16 +89,18 @@ from emukit.examples.models.random_forest import RandomForest
 from emukit.experimental_design import RandomDesign
 
 random_design = RandomDesign(space)
+
+'''start finding optimimum'''
+
+
+start = time.time()
+
 initial_points_count = 3
 X_init = random_design.get_samples(initial_points_count)
 Y_init = emukit_friendly_objective_function(X_init)
-
 rf_model = RandomForest(X_init, Y_init)
-
-'''start finding optimimum'''
 loop = BayesianOptimizationLoop(space,rf_model)
 
-start = time.time()
 loop.run_loop(emukit_friendly_objective_function, 5)
 end = time.time()
 print('time needed: ' + str(end-start))
