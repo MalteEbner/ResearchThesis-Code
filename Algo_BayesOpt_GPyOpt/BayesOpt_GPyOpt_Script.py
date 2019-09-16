@@ -15,6 +15,7 @@ import GPyOpt
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
+#modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
 
@@ -30,7 +31,7 @@ for space in actionSpace.spaces:
                         'domain': range(noVariants)}
             mixed_domain.append(variable)
     elif isinstance(space, spaces.Box):
-        for index in range(space.shape):
+        for index in range(space.shape[0]):
             variable = {'name': 'compression_var_' + str(index),
                         'type': 'continuous',
                         'domain': (0.5, 1)}
@@ -53,7 +54,7 @@ myBopt = GPyOpt.methods.BayesianOptimization(f=objective_function,              
                                              exact_feval = True)           # True evaluations, no sample noise
 print('starting optimization')
 start = time.time()
-myBopt.run_optimization(max_iter=600,eps=-1,verbosity=True)
+myBopt.run_optimization(max_iter=6,eps=-1,verbosity=True)
 end = time.time()
 print('time needed: ' + str(end-start))
 
@@ -63,9 +64,7 @@ myBopt.plot_convergence()
 bestX = myBopt.x_opt
 
 action.saveEverythingCombined(bestX)
-print("best input: " + str(bestX))
-print("performance of best: " + str(model.simulateMean(action)))
-print("end of optimization")
+model.printAllAboutAction(action)
 
 
 
