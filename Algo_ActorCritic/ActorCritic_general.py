@@ -100,8 +100,7 @@ def oneHotEncode(actionList):
 
 def predictionsToActions(predictions,actionSpace,kind):
     noActions = predictions[0].shape[0]
-    outputList = [np.squeeze(i) for i in predictions]
-    output = outputList
+    output = predictions
     actions = [ActionSpace.Action(actionSpace) for i in range(noActions)]
     for action in actions:
         action.valuesList = [[] for i in actionSpace.spaces]
