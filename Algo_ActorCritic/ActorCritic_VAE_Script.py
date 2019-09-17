@@ -1,3 +1,0 @@
-from Algo_ActorCritic.ActorCritic_VAE_Function import actorCritic_VAE_RunAlgo
-
-res = actorCritic_VAE_RunAlgo()
