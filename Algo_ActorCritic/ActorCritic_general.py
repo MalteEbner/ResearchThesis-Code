@@ -13,11 +13,11 @@ def generatActionInputLayer(actionSpace):
     inputs = []
     for space in actionSpace.spaces:
         if isinstance(space,spaces.MultiDiscrete):
-            for noVariants in space.nvec:
+            for ind, noVariants in enumerate(space.nvec):
                 variantLayer = Input(shape=(noVariants,))
                 inputs.append(variantLayer)
         elif isinstance(space,spaces.Box):
-                scheduleLayer = Input(shape=space.shape)
+                scheduleLayer = Input(shape=space.shape,name='scheduleCompression')
                 inputs.append(scheduleLayer)
         else:
             raise NotImplementedError
@@ -31,7 +31,7 @@ def generateActionOutputLayer(actionSpace,previousLayer):
     losses = []
     for space in actionSpace.spaces:
         if isinstance(space,spaces.MultiDiscrete):
-            for noVariants in space.nvec:
+            for ind, noVariants in enumerate(space.nvec):
                 variantLayer = Dense(noVariants, activation='softmax')(previousLayer)
                 outputs.append(variantLayer)
                 losses.append('categorical_crossentropy')
@@ -39,9 +39,9 @@ def generateActionOutputLayer(actionSpace,previousLayer):
             # output should range in box constraints
             if space.is_bounded():
                 boxMean = np.mean([space.low,space.high],axis=0)
-                scheduleCompressionLayer_unconstrained = Dense(space.shape[0], bias_initializer=Constant(value=boxMean))(
+                scheduleCompressionLayer_unconstrained = Dense(space.shape[0], bias_initializer=Constant(value=boxMean), name='scheduleCompression_unconstrained')(
                     previousLayer)
-                scheduleCompressionLayer = Lambda(lambda x: tf_minimum(tf_maximum(x, space.low), space.high))(
+                scheduleCompressionLayer = Lambda(lambda x: tf_minimum(tf_maximum(x, space.low), space.high),name='scheduleCompression_in_bounds')(
                     scheduleCompressionLayer_unconstrained)
             else:#assumes space is unbounded on both sides
                 scheduleCompressionLayer = Dense(space.shape[0])(previousLayer)

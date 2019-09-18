@@ -13,10 +13,7 @@ from Algo_ActorCritic import ActorCritic_general
 from Algo_ActorCritic.ActorCritic_Class import Policy
 from tensorflow.keras.losses import mse, categorical_crossentropy
 
-# reparameterization trick
-# instead of sampling from Q(z|X), sample epsilon = N(0,I)
-# z = z_mean + sqrt(var) * epsilon
-# taken from https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
+
 
 
 
@@ -27,44 +24,43 @@ class VAE_Model:
         self.defineModel()
 
     def defineModel(self):
-        verbose = False
+        verbose = True
 
         latentDim = self.latentDim
 
         #define encoder model
         encoder_inputLayer_s = ActorCritic_general.generatActionInputLayer(self.actionSpace)
         if len(encoder_inputLayer_s)>1:
-            encoder_inputLayer = concatenate(encoder_inputLayer_s)
+            encoder_inputLayer = concatenate(encoder_inputLayer_s, name='concattenated_input')
         else:
             encoder_inputLayer = encoder_inputLayer_s[0]
         #encoder_intLayer = Dense(latentDim*4,activation='relu')(encoder_inputLayers)
-        encoder_intLayer_last = Dense(latentDim*2,activation='relu')(encoder_inputLayer)
-        encoder_meanLayer = Dense(latentDim,activation='relu')(encoder_intLayer_last)
-        encoder_logVarianceLayer = Dense(latentDim, activation='relu',bias_initializer=Constant(value=0))(encoder_intLayer_last)
-        encoder_outputLayer = Lambda(self.VAE_sampling,output_shape=(latentDim,))([encoder_meanLayer,encoder_logVarianceLayer])
-        encoder_outputLayers = [encoder_meanLayer,encoder_logVarianceLayer,encoder_outputLayer]
-        encoder_Model = Model(encoder_inputLayer_s,encoder_outputLayers,name='encoder')
+        encoder_intLayer_last = Dense(latentDim*2,activation='relu',name='encoding')(encoder_inputLayer)
+        encoder_meanLayer = Dense(latentDim,activation='relu',name='latent_means')(encoder_intLayer_last)
+        encoder_logVarianceLayer = Dense(latentDim, activation='relu',bias_initializer=Constant(value=0),name='latent_log_variance')(encoder_intLayer_last)
+        encoder_outputLayer = Lambda(self.VAE_sampling,output_shape=(latentDim,),name='sampling_latent_action')([encoder_meanLayer,encoder_logVarianceLayer])
+        #encoder_outputLayers = [encoder_meanLayer,encoder_logVarianceLayer,encoder_outputLayer]
+        encoder_Model = Model(encoder_inputLayer_s,encoder_outputLayer,name='encoder')
         if verbose:
             encoder_Model.summary()
-            plot_model(encoder_Model, to_file='vae_encoder.png', show_shapes=True)
+            #plot_model(encoder_Model, to_file='vae_encoder.png', show_shapes=True)
 
         #define decoder model
         decoder_inputLayerLatentAction = Input(shape=(latentDim,))
         #decoder_intLayer = Dense(latentDim*2,activation='relu')(decoder_inputLayerLatentAction)
-        decoder_intLayer_last = Dense(latentDim*4, activation='relu')(decoder_inputLayerLatentAction)
+        decoder_intLayer_last = Dense(latentDim*2, activation='relu',name='decoding')(decoder_inputLayerLatentAction)
         decoder_outputLayer, losses_reconstruction = ActorCritic_general.generateActionOutputLayer(self.actionSpace,decoder_intLayer_last)
         decoder_Model = Model(decoder_inputLayerLatentAction,decoder_outputLayer,name='decoder')
         if verbose:
             decoder_Model.summary()
-            plot_model(decoder_Model, to_file='vae_decoder.png', show_shapes=True)
+            #plot_model(decoder_Model, to_file='vae_decoder.png', show_shapes=True)
 
         #define VAE model
-        latentActionLayer = encoder_outputLayer
-        outputs = decoder_Model(latentActionLayer)
+        outputs = decoder_Model(encoder_Model(encoder_inputLayer_s))
         vae_model = Model(encoder_inputLayer_s,outputs,name='vae')
         if verbose:
             vae_model.summary()
-            plot_model(vae_model, to_file='vae_model.png', show_shapes=True)
+            plot_model(vae_model, to_file='vae_model.png', show_shapes=True,expand_nested=True)
 
         #add KL-divergence to losses
         kl_loss = 1 + encoder_logVarianceLayer - K.square(encoder_meanLayer) - K.exp(encoder_logVarianceLayer)
@@ -102,6 +98,10 @@ class VAE_Model:
         encodedActions = ActorCritic_general.oneHotEncode(actions)
         self.model.fit(encodedActions, encodedActions, verbose=False)
 
+    # reparameterization trick
+    # instead of sampling from Q(z|X), sample epsilon = N(0,I)
+    # z = z_mean + sqrt(var) * epsilon
+    # taken from https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
 
     def VAE_sampling(self,args):
         """Reparameterization trick by sampling from an isotropic unit Gaussian.
