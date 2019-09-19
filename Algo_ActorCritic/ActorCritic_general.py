@@ -61,7 +61,11 @@ def softmaxPredictionListToChoices(predictionNDarray,kind='best'):
             if hasattr(variantProbs, '__iter__') and len(variantProbs)>1:
                 varNum = len(variantProbs)
                 if kind == 'random':
-                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
+                    # ensure variantProbs sums up to 1
+                    bestVariant = np.argmax(variantProbs)
+                    sumVariantProbs = np.sum(variantProbs)
+                    variantProbs[bestVariant] += 1-sumVariantProbs
+                    # sample variant
                     chosenVariant = np.random.choice(range(varNum), 1, p=variantProbs)[0]
                 elif kind == 'best':
                     chosenVariant = np.argmax(variantProbs)
