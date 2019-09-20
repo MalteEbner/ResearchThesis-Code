@@ -11,6 +11,7 @@ class Model_general:
         self.activities = activities # activities are a list
         self.defaultLossFunction = defaultLossFunction
         self.calcPerformanceFunction = calcPerformanceFunction
+        self.modelOptions = modelOptions
         if modelOptions.withEvents:
             self.simulate = self.simulateStepwise_withEvents  # the normal simulation is the one with events
 

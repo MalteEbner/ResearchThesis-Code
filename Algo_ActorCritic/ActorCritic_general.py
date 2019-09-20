@@ -1,9 +1,9 @@
 from Interface import ActionSpace
 from tensorflow.keras.layers import Input, Dense, Lambda
-from keras.initializers import Constant
+from tensorflow.keras.initializers import Constant
 from tensorflow.math import maximum as tf_maximum
 from tensorflow.math import minimum as tf_minimum
-from keras.utils import to_categorical
+from tensorflow.keras.utils import to_categorical
 from keras.backend import expand_dims
 import numpy as np
 from gym import spaces
@@ -61,7 +61,11 @@ def softmaxPredictionListToChoices(predictionNDarray,kind='best'):
             if hasattr(variantProbs, '__iter__') and len(variantProbs)>1:
                 varNum = len(variantProbs)
                 if kind == 'random':
-                    variantProbs[0] = 1 - sum(variantProbs[1:])  # ensure variantProbs sums up to 1
+                    # ensure variantProbs sums up to 1
+                    bestVariant = np.argmax(variantProbs)
+                    sumVariantProbs = np.sum(variantProbs)
+                    variantProbs[bestVariant] += 1-sumVariantProbs
+                    # sample variant
                     chosenVariant = np.random.choice(range(varNum), 1, p=variantProbs)[0]
                 elif kind == 'best':
                     chosenVariant = np.argmax(variantProbs)

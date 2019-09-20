@@ -45,16 +45,18 @@ for space in actionSpace.spaces:
 def objective_function(input):
     action.saveEverythingCombined(input[0])
     loss = model.simulate_returnLoss(action)
+    print('loss: ' + str(loss))
     return loss
 
 myBopt = GPyOpt.methods.BayesianOptimization(f=objective_function,                     # Objective function
                                              domain=mixed_domain,          # Box-constraints of the problem
-                                             initial_design_numdata = 5,   # Number data initial design
+                                             initial_design_numdata = 500,   # Number data initial design
                                              acquisition_type='EI',        # Expected Improvement
-                                             exact_feval = True)           # True evaluations, no sample noise
+                                             exact_feval = True,
+                                             verbosity=True)           # True evaluations, no sample noise
 print('starting optimization')
 start = time.time()
-myBopt.run_optimization(max_iter=6,eps=-1,verbosity=True)
+myBopt.run_optimization(max_iter=400,eps=-1,verbosity=True)
 end = time.time()
 print('time needed: ' + str(end-start))
 
