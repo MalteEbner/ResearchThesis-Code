@@ -7,7 +7,7 @@ from gym import spaces
 
 class GeneticOpt():
 
-    def __init__(self,actionSpace,lossFunction,initialPopSize=500):
+    def __init__(self,actionSpace,lossFunction,initialPopSize=100):
 
         self.actionSpace = actionSpace
         self.lossFunction = lossFunction
@@ -32,7 +32,7 @@ class GeneticOpt():
         self.population = self.breedPopulation(matePopIndices,elitePopIndices)
         return soFarBestChromosome
 
-    def selection(self,losses,matePoolSize=20,eliteSize=5):
+    def selection(self,losses,matePoolSize=50,eliteSize=20):
         exploitationFactor = 0.1
         probs = commonFunctions.probsFromLosses(losses,exploitationFactor)
         try:

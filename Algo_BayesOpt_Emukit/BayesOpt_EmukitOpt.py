@@ -24,7 +24,7 @@ warnings.filterwarnings(action='ignore',category=DataConversionWarning)
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
-#modelOptions.interface = "VAE"
+modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
 
@@ -94,13 +94,13 @@ random_design = RandomDesign(space)
 
 start = time.time()
 
-initial_points_count = 3
+initial_points_count = 1500
 X_init = random_design.get_samples(initial_points_count)
 Y_init = emukit_friendly_objective_function(X_init)
 rf_model = RandomForest(X_init, Y_init)
 loop = BayesianOptimizationLoop(space,rf_model)
 
-loop.run_loop(emukit_friendly_objective_function, 5)
+loop.run_loop(emukit_friendly_objective_function, 1500)
 end = time.time()
 print('time needed: ' + str(end-start))
 

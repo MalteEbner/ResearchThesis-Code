@@ -25,8 +25,8 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         print('baseline:' + str(baseline) + " baseline_std: " + str(baseStd))
 
     '''hyperparams'''
-    batchSize = hyperparams.get('batchSize',4)
-    noSamples = hyperparams.get('noSamples',32)
+    batchSize = hyperparams.get('batchSize',32)
+    noSamples = hyperparams.get('noSamples',32000)
     noIterations = int(noSamples/batchSize)
     verboseNoIterations = max(int(128/batchSize),1)
     baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.1)
@@ -34,7 +34,7 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
     explorationFactor = hyperparams.get('explorationFactor',0.9)
     explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.99)
 
-    learningRate = hyperparams.get('learningRate',1)
+    learningRate = hyperparams.get('learningRate',0.1)
     learningRateDecayFactor = hyperparams.get('learningRateDecayFactor',0.98)
 
     '''run actor-critic algorithm'''

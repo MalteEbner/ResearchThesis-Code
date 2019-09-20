@@ -13,8 +13,8 @@ from gym import spaces
 
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = True
-modelOptions.withScheduleCompression=True
+modelOptions.probabilistic = False
+modelOptions.withScheduleCompression=False
 modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
@@ -59,7 +59,7 @@ def objectiveFunction(varDict):
 '''
 do the optimization
 '''
-best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=40)
+best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=10000)
 
 
 bestAction = varDictToAction(best)
