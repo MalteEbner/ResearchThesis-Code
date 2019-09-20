@@ -7,15 +7,20 @@ import numpy as np
 
 
 class VAE_Interface(DefaultInterface.DefaultInterface):
-    def __init__(self, projectModel,latentDim=4):
+    def __init__(self, projectModel,latentDim=16, trainingKind='start'):
         self.projectModel = projectModel
         self.actionSpace = ActionSpace.ActionSpace([spaces.Box(-np.inf,np.inf,shape=(latentDim,)),])
-        self.VAE = VAE_Model(projectModel.getActionSpace(),latentDim)
+        usePretrained = trainingKind=='start' or trainingKind=='both'
+        self.VAE = VAE_Model(projectModel,latentDim,usePretrained)
         self.baseline = 0
         self.baselineUpdateFactor = 0.01
+        self.trainOnline = trainingKind=='online' or trainingKind=='both'
 
 
-    def simulate(self,latentAction_s,kind='random',learningRateVAE = 0.001):
+
+
+
+    def simulate(self,latentAction_s,kind='best',learningRateVAE = 0.01):
         if isinstance(latentAction_s,ActionSpace.Action):
             performances = self.simulate_onBatch([latentAction_s],kind,learningRateVAE)[0]
         elif isinstance(latentAction_s,list):
@@ -34,15 +39,16 @@ class VAE_Interface(DefaultInterface.DefaultInterface):
 
         performances = [self._simulateOnProject(action) for action in actions]
 
-        # update baseline
-        losses = [perf[0] for perf in performances]
-        meanLoss = np.mean(losses)
-        self.baseline += self.baselineUpdateFactor*(meanLoss-self.baseline)
+        if self.trainOnline:
+            # update baseline
+            losses = [perf[0] for perf in performances]
+            meanLoss = np.mean(losses)
+            self.baseline += self.baselineUpdateFactor*(meanLoss-self.baseline)
 
-        # only train VAE on good actions
-        goodActions = [actions[i] for i in range(len(losses)) if losses[i]<self. baseline]
-        if len(goodActions)>0:
-            self.VAE.update(goodActions,learningRateVAE)
+            # only train VAE on good actions
+            goodActions = [actions[i] for i in range(len(losses)) if losses[i]<self. baseline]
+            if len(goodActions)>0:
+                self.VAE.update(goodActions,learningRateVAE)
 
         return performances
 
