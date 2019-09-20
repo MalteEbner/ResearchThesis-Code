@@ -1,9 +1,9 @@
 from Interface import ActionSpace
 from tensorflow.keras.layers import Input, Dense, Lambda
-from keras.initializers import Constant
+from tensorflow.keras.initializers import Constant
 from tensorflow.math import maximum as tf_maximum
 from tensorflow.math import minimum as tf_minimum
-from keras.utils import to_categorical
+from tensorflow.keras.utils import to_categorical
 from keras.backend import expand_dims
 import numpy as np
 from gym import spaces
