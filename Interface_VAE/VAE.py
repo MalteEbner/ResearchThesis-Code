@@ -47,7 +47,7 @@ class VAE_Model:
         latentDim = self.latentDim
 
         #define encoder model
-        encoder_inputLayer_s = ActorCritic_general.generatActionInputLayer(self.actionSpace)
+        encoder_inputLayer_s = ActorCritic_general.generateActionInputLayer(self.actionSpace)
         if len(encoder_inputLayer_s)>1:
             encoder_inputLayer = concatenate(encoder_inputLayer_s, name='concattenated_input')
         else:
