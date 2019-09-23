@@ -56,8 +56,8 @@ class VAE_Interface(DefaultInterface.DefaultInterface):
         return super().simulate(action)
 
 
-    def simulate_returnLoss_onBatch(self,actions):
-        return [performance[0] for performance in self.simulate(actions)]
+    def simulate_returnLoss_onBatch(self,actions,*args):
+        return [performance[0] for performance in self.simulate(actions,*args)]
 
 
 

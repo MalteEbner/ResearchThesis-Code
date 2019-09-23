@@ -1,14 +1,17 @@
 from Interface import ActionSpace
 from tensorflow.keras.layers import Input, Dense, Lambda
-from tensorflow.keras.initializers import Constant
+from tensorflow.keras.layers import Maximum, Minimum
+from tensorflow.keras.initializers import Constant as init_constant
 from tensorflow.math import maximum as tf_maximum
 from tensorflow.math import minimum as tf_minimum
 from tensorflow.keras.utils import to_categorical
-from keras.backend import expand_dims
+from tensorflow.keras.backend import expand_dims
+from tensorflow.keras.backend import constant as tf_constant
 import numpy as np
 from gym import spaces
+from tensorflow.keras.backend import clip
 
-def generatActionInputLayer(actionSpace):
+def generateActionInputLayer(actionSpace):
     # input Layers
     inputs = []
     for space in actionSpace.spaces:
@@ -23,6 +26,9 @@ def generatActionInputLayer(actionSpace):
             raise NotImplementedError
 
     return inputs
+
+def clipFunction(x):
+    return clip(x,0.5,1)
 
 def generateActionOutputLayer(actionSpace,previousLayer):
 
@@ -39,10 +45,14 @@ def generateActionOutputLayer(actionSpace,previousLayer):
             # output should range in box constraints
             if space.is_bounded():
                 boxMean = np.mean([space.low,space.high],axis=0)
-                scheduleCompressionLayer_unconstrained = Dense(space.shape[0], bias_initializer=Constant(value=boxMean), name='scheduleCompression_unconstrained')(
+                scheduleCompressionLayer_unconstrained = Dense(space.shape[0], bias_initializer=init_constant(value=boxMean), name='scheduleCompression_unconstrained')(
                     previousLayer)
-                scheduleCompressionLayer = Lambda(lambda x: tf_minimum(tf_maximum(x, space.low), space.high),name='scheduleCompression_in_bounds')(
-                    scheduleCompressionLayer_unconstrained)
+                #scheduleCompressionLayer = Lambda(lambda x: tf_minimum(tf_maximum(x, space.low), space.high),name='scheduleCompression_in_bounds')(
+                    #scheduleCompressionLayer_unconstrained)
+                #upperBound = tf_constant(space.high,shape=(1,25))
+                #scheduleCompressionLayer = Minimum()([scheduleCompressionLayer_unconstrained,upperBound])
+                #scheduleCompressionLayer = Maximum()([expand_dims(space.low,axis=0),scheduleCompressionLayer1])
+                scheduleCompressionLayer = Lambda(clipFunction)(scheduleCompressionLayer_unconstrained)
             else:#assumes space is unbounded on both sides
                 scheduleCompressionLayer = Dense(space.shape[0])(previousLayer)
             outputs.append(scheduleCompressionLayer)
