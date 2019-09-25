@@ -71,7 +71,7 @@ class Policy:
                 raise NotImplementedError
         if inputs == 0:
             inputs = np.ones((noSamples,1))
-        outputs = ActorCritic_general.oneHotEncode(outputActions)
+        outputs = ActorCritic_general.sparseEncode(outputActions)
         self.model.train_on_batch([inputs],outputs,sample_weight=sampleWeights)
 
     def update_Binary(self,outputActions,updateWeights,inputs=0):
@@ -82,7 +82,7 @@ class Policy:
 
         outputActions = [action for action,weight in zip(outputActions,updateWeights) if weight > 0]
         if len(outputActions)>0:
-            outputs = ActorCritic_general.oneHotEncode(outputActions)
+            outputs = ActorCritic_general.sparseEncode(outputActions)
 
             if inputs == 0:
                 inputs = np.ones((len(outputActions),1))

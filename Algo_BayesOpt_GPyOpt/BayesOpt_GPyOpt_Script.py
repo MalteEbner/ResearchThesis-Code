@@ -13,9 +13,9 @@ import GPyOpt
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=False
+modelOptions.withScheduleCompression=True
 #modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
