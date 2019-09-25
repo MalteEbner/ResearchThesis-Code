@@ -11,7 +11,7 @@ from Algo_ActorCritic import ActorCritic_general
 from tensorflow.keras import backend as K
 from Algo_ActorCritic import ActorCritic_general
 from Algo_ActorCritic.ActorCritic_Class import Policy
-from tensorflow.keras.losses import mse, categorical_crossentropy
+from tensorflow.keras.losses import mse, categorical_crossentropy, sparse_categorical_crossentropy
 from tensorflow.keras.models import load_model
 
 
@@ -117,8 +117,9 @@ class VAE_Model:
 
     def update(self, actions, learningRate):
         self.model.optimizer.lr=learningRate
-        encodedActions = ActorCritic_general.oneHotEncode(actions)
-        self.model.fit(encodedActions, encodedActions, verbose=False)
+        oneHotEncodedActions = ActorCritic_general.oneHotEncode(actions)
+        sparseEncodedActions = ActorCritic_general.sparseEncode(actions)
+        self.model.fit(oneHotEncodedActions, sparseEncodedActions, verbose=False)
 
     # reparameterization trick
     # instead of sampling from Q(z|X), sample epsilon = N(0,I)
@@ -133,6 +134,8 @@ class VAE_Model:
             reconstructionLoss = mse
         elif lossType == 'categorical_crossentropy':
             reconstructionLoss = categorical_crossentropy
+        elif lossType == 'sparse_categorical_crossentropy':
+            reconstructionLoss = sparse_categorical_crossentropy
         else:
             print('ERROR: wrong loss')
             raise ValueError
