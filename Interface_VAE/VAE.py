@@ -35,7 +35,7 @@ class VAE_Model:
         self.latentDim = latentDim
         self.actionSpace = projectModel.getActionSpace()
         if usePretrained:
-            name = projectModel.modelOptions.asPretrainedVAE_Filename(projectModel)
+            name = projectModel.modelOptions.asPretrainedVAE_Filename(latentDim)
             self.model = load_model(name)
         else:
             self.defineModel()

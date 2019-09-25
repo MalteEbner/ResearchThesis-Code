@@ -7,16 +7,19 @@ from tensorflow.keras.models import load_model
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('Refinery') #type: 'Refinery' , 'MIS' or 'Refinery'
+modelOptions = Model_options('MIS') #type: 'Refinery' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)
 projectModel = model.projectModel
+latentDim = 32
+if modelOptions.withScheduleCompression:
+    latentDim*=2
 
 
 
 
-def generatePretrainedVAEModel(projectModel,latentDim):
+def generatePretrainedVAEModel(projectModel,latentDim,noIters=200, noSamplesPerIter = 16*1024):
     actionSpace = projectModel.getActionSpace()
     vae = Interface_VAE.VAE.VAE_Model(projectModel,latentDim,False)
 
@@ -34,8 +37,6 @@ def generatePretrainedVAEModel(projectModel,latentDim):
 
     if True:
         # pre-train with best of following actions
-        noIters = 100
-        noSamplesPerIter = 16*1024
         noSamplesTrainedOnTotal = 0
         for i in range(noIters):
             actions = [actionSpace.sample() for i in range(noSamplesPerIter)]
@@ -54,7 +55,7 @@ def generatePretrainedVAEModel(projectModel,latentDim):
 
 
     # save trained model
-    name = projectModel.modelOptions.asPretrainedVAE_Filename(projectModel)
+    name = projectModel.modelOptions.asPretrainedVAE_Filename(latentDim)
     vae.model.save(name)
 
     #test if model can be loaded
@@ -65,5 +66,7 @@ def generatePretrainedVAEModel(projectModel,latentDim):
     print('loaded successfully')
 
 '''generate and pre-train VAE'''
-latentDim = 16
+#test run
+generatePretrainedVAEModel(projectModel,latentDim,1,1000)
+#real run
 generatePretrainedVAEModel(projectModel,latentDim)
