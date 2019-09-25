@@ -40,7 +40,8 @@ def generateActionOutputLayer(actionSpace,previousLayer):
             for ind, noVariants in enumerate(space.nvec):
                 variantLayer = Dense(noVariants, activation='softmax')(previousLayer)
                 outputs.append(variantLayer)
-                losses.append('categorical_crossentropy')
+                #losses.append('categorical_crossentropy')
+                losses.append('sparse_categorical_crossentropy')
         elif isinstance(space,spaces.Box):
             # output should range in box constraints
             if space.is_bounded():
@@ -99,6 +100,28 @@ def oneHotEncode(actionList):
         if isinstance(space,spaces.MultiDiscrete):
             for noVariants in space.nvec:
                 encoding = to_categorical(variables[:, noVarsSoFar], num_classes=noVariants)
+                # encoding = expand_dims(encoding,axis=1)
+                outputs.append(encoding)
+                noVarsSoFar +=1
+        elif isinstance(space,spaces.Box):
+            encoding = variables[:, noVarsSoFar:noVarsSoFar+space.shape[0]]
+            # encoding = expand_dims(encoding,axis=1)
+            outputs.append(encoding)
+            noVarsSoFar += space.shape[0]
+        else:
+            raise NotImplementedError
+    return outputs
+
+def sparseEncode(actionList):
+    actionSpace = actionList[0].actionSpace
+    outputs = []
+    variableList = [np.concatenate(action.valuesList) for action in actionList]
+    variables = np.array(variableList)
+    noVarsSoFar = 0
+    for space in actionSpace.spaces:
+        if isinstance(space,spaces.MultiDiscrete):
+            for noVariants in space.nvec:
+                encoding = variables[:, noVarsSoFar]
                 # encoding = expand_dims(encoding,axis=1)
                 outputs.append(encoding)
                 noVarsSoFar +=1
