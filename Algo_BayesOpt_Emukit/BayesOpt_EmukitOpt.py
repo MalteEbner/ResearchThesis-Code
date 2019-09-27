@@ -21,10 +21,10 @@ warnings.filterwarnings(action='ignore',category=DataConversionWarning)
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('MIS ') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
-modelOptions.interface = "VAE"
+#modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
 
@@ -43,9 +43,15 @@ for space in actionSpace.spaces:
             categoricalParam = CategoricalParameter('Param_%d_%d' % (groupNumber,index), encoding)
             parameterList.append(categoricalParam)
     elif isinstance(space, spaces.Box):
-        for index in range(space.shape[0]):
-            realParam = ContinuousParameter('Param_%d_%d' % (groupNumber,index),0.5,1)
-            parameterList.append(realParam)
+        if space.is_bounded():
+            for index, low, high in zip(range(space.shape[0]), space.low, space.high):
+                realParam = ContinuousParameter('Param_%d_%d' % (groupNumber, index), low, high)
+                parameterList.append(realParam)
+        else:
+            for index in range(space.shape[0]):
+                realParam = ContinuousParameter('Param_%d_%d' % (groupNumber, index),-5,5)#no unbounded param possible
+                parameterList.append(realParam)
+
     else:
         raise NotImplementedError
     groupNumber +=1

@@ -44,9 +44,9 @@ class ProjectAction(Action):
 
 
     def __repr__(self):
-        lines = []
+        lines = ''
         spaceNames = ["activities:", "events:", "scheduleCompressionFactors:"]
-        for values, index in enumerate(self.valuesList):
+        for index, values in enumerate(self.valuesList):
             lines += spaceNames[index]
             lines += str(values)
             lines += "\n"

@@ -7,7 +7,7 @@ import numpy as np
 
 
 class VAE_Interface(DefaultInterface.DefaultInterface):
-    def __init__(self, projectModel,latentDim=16, trainingKind='start'):
+    def __init__(self, projectModel,latentDim=32, trainingKind='start'):
         self.projectModel = projectModel
         self.actionSpace = ActionSpace.ActionSpace([spaces.Box(-np.inf,np.inf,shape=(latentDim,)),])
         usePretrained = trainingKind=='start' or trainingKind=='both'
@@ -56,8 +56,8 @@ class VAE_Interface(DefaultInterface.DefaultInterface):
         return super().simulate(action)
 
 
-    def simulate_returnLoss_onBatch(self,actions):
-        return [performance[0] for performance in self.simulate(actions)]
+    def simulate_returnLoss_onBatch(self,actions,*args):
+        return [performance[0] for performance in self.simulate(actions,*args)]
 
 
 

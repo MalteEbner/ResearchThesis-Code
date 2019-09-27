@@ -4,19 +4,23 @@ from Interface.generateModel import generateModel
 from Interface_VAE.VAE import VAE_sampling
 import numpy as np
 from tensorflow.keras.models import load_model
+import time
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('Refinery') #type: 'Refinery' , 'MIS' or 'Refinery'
+modelOptions = Model_options('MIS') #type: 'Refinery' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
 model = generateModel(modelOptions)
 projectModel = model.projectModel
+latentDim = 32
+if modelOptions.withScheduleCompression:
+    latentDim*=2
 
 
 
 
-def generatePretrainedVAEModel(projectModel,latentDim):
+def generatePretrainedVAEModel(projectModel,latentDim,noIters=5 0, noSamplesPerIter = 64):
     actionSpace = projectModel.getActionSpace()
     vae = Interface_VAE.VAE.VAE_Model(projectModel,latentDim,False)
 
@@ -25,17 +29,16 @@ def generatePretrainedVAEModel(projectModel,latentDim):
 
 
     # get threshhold for good actions as mean minus standard deviation averaged with best of many random actions
-    losses = [projectModel.simulate_returnLoss(actionSpace.sample()) for i in range(1000)]
-    baseline = np.mean(losses)
-    baseStd = np.std(losses)
-    bestLoss = np.min(losses)
-    threshhold = np.mean([baseline - baseStd, bestLoss])
+    losses = [projectModel.simulate_returnLoss(actionSpace.sample()) for i in range(100)]
+    meanL = np.mean(losses)
+    stdL = np.std(losses)
+    bestL = np.min(losses)
+    #threshhold = np.mean([meanL - stdL, bestL])
+    threshhold = meanL-stdL
     print('threshhold: ' + str(threshhold))
 
     if True:
         # pre-train with best of following actions
-        noIters = 100
-        noSamplesPerIter = 16*1024
         noSamplesTrainedOnTotal = 0
         for i in range(noIters):
             actions = [actionSpace.sample() for i in range(noSamplesPerIter)]
@@ -54,7 +57,7 @@ def generatePretrainedVAEModel(projectModel,latentDim):
 
 
     # save trained model
-    name = projectModel.modelOptions.asPretrainedVAE_Filename(projectModel)
+    name = projectModel.modelOptions.asPretrainedVAE_Filename(latentDim)
     vae.model.save(name)
 
     #test if model can be loaded
@@ -65,5 +68,13 @@ def generatePretrainedVAEModel(projectModel,latentDim):
     print('loaded successfully')
 
 '''generate and pre-train VAE'''
-latentDim = 16
+#test run
+start = time.time()
+generatePretrainedVAEModel(projectModel,latentDim,1,1 )
+timeNeeded = time.time()-start
+print("needed %f seconds" % timeNeeded)
+#real run
+start = time.time()
 generatePretrainedVAEModel(projectModel,latentDim)
+timeNeeded = time.time()-start
+print("needed %f seconds" % timeNeeded)

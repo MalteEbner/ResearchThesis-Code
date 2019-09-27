@@ -11,7 +11,7 @@ from Algo_ActorCritic import ActorCritic_general
 from tensorflow.keras import backend as K
 from Algo_ActorCritic import ActorCritic_general
 from Algo_ActorCritic.ActorCritic_Class import Policy
-from tensorflow.keras.losses import mse, categorical_crossentropy
+from tensorflow.keras.losses import mse, categorical_crossentropy, sparse_categorical_crossentropy
 from tensorflow.keras.models import load_model
 
 
@@ -35,7 +35,7 @@ class VAE_Model:
         self.latentDim = latentDim
         self.actionSpace = projectModel.getActionSpace()
         if usePretrained:
-            name = projectModel.modelOptions.asPretrainedVAE_Filename(projectModel)
+            name = projectModel.modelOptions.asPretrainedVAE_Filename(latentDim)
             self.model = load_model(name)
         else:
             self.defineModel()
@@ -47,7 +47,7 @@ class VAE_Model:
         latentDim = self.latentDim
 
         #define encoder model
-        encoder_inputLayer_s = ActorCritic_general.generatActionInputLayer(self.actionSpace)
+        encoder_inputLayer_s = ActorCritic_general.generateActionInputLayer(self.actionSpace)
         if len(encoder_inputLayer_s)>1:
             encoder_inputLayer = concatenate(encoder_inputLayer_s, name='concattenated_input')
         else:
@@ -117,8 +117,9 @@ class VAE_Model:
 
     def update(self, actions, learningRate):
         self.model.optimizer.lr=learningRate
-        encodedActions = ActorCritic_general.oneHotEncode(actions)
-        self.model.fit(encodedActions, encodedActions, verbose=False)
+        oneHotEncodedActions = ActorCritic_general.oneHotEncode(actions)
+        sparseEncodedActions = ActorCritic_general.sparseEncode(actions)
+        self.model.fit(oneHotEncodedActions, sparseEncodedActions, verbose=False)
 
     # reparameterization trick
     # instead of sampling from Q(z|X), sample epsilon = N(0,I)
@@ -133,6 +134,8 @@ class VAE_Model:
             reconstructionLoss = mse
         elif lossType == 'categorical_crossentropy':
             reconstructionLoss = categorical_crossentropy
+        elif lossType == 'sparse_categorical_crossentropy':
+            reconstructionLoss = sparse_categorical_crossentropy
         else:
             print('ERROR: wrong loss')
             raise ValueError

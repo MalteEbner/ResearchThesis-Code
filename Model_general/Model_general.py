@@ -46,7 +46,6 @@ class Model_general:
         self.performance = self.calcPerformanceFunction(self.activities)
         self.loss = lossFunction(self.performance)
         retValue = (self.loss,) + self.performance
-
         self.resetFunction()
         return retValue
 
@@ -60,7 +59,7 @@ class Model_general:
 
     def simulateMean(self,action, lossFunction=[], randomTestsToMean=[]):
         if randomTestsToMean==[]:
-            randomTestsToMean=20
+            randomTestsToMean=10
         performances = [self.simulate(action,lossFunction) for i in range(randomTestsToMean)]
         meanPerformance = np.mean(performances,axis=0)
         meanPerformance = np.round(meanPerformance,2)
@@ -105,6 +104,25 @@ class Model_general:
             losses.append(optionsLosses)
         return losses
 
+    def getHeuristicBestAction(self,lossFunction=[]):
+        action = ProjectActionSpace.ProjectAction(self.getActionSpace())
+        if lossFunction == []:
+            lossFunction = self.defaultLossFunction
+        bestActivities = []
+        for activity in self.activities:
+            variantLosses = [lossFunction(var.simulate()) for var in activity.variants]
+            bestLoss = np.argmin(variantLosses)
+            bestActivities.append(bestLoss)
+        bestEvents = [0 for i in self.orderedEventIDs()]
+        valuesList = [bestActivities,bestEvents]
+        if self.modelOptions.withScheduleCompression:
+            scheduleCompressionFactors = [1 for i in self.activities]
+            valuesList.append(scheduleCompressionFactors)
+        action.saveValuesList(valuesList)
+        self.resetFunction()
+        return action
+
+
 
 
     def simulateStepwise_withEvents(self,action,lossFunction=[]):
@@ -126,9 +144,13 @@ class Model_general:
 
             if self.TimeDelay == 0:
                 #do one step on all variants
-                for activity,chosenVariantIndex in zip(activities,activityIndizes):
-                    if all(act.finished for act in activity.predecessors):
-                        activity.variants[chosenVariantIndex].simulateStep(self)
+                if self.modelOptions.withScheduleCompression:
+                    for activity, chosenVariantIndex, compression in zip(self.activities, activityIndizes, action.scheduleCompressionFactors()):
+                        if all(act.finished for act in activity.predecessors):
+                            activity.variants[chosenVariantIndex].simulateStep(compression)
+                else:
+                    for activity, index in zip(self.activities, activityIndizes):
+                        activity.variants[index].simulateStep()
             else:
                 self.TimeDelay -=1
 
@@ -177,9 +199,9 @@ class Variant():
         self.simulateStepFunction = simulateStepFunction
         self.simulate = simulate
 
-    def simulateStep(self,model):
+    def simulateStep(self,scheduleCompressionFactor=1):
         if all(pred.finished for pred in self.activity.predecessors):
-            relProgress = self.simulateStepFunction(model)
+            relProgress = self.simulateStepFunction(scheduleCompressionFactor)
             if relProgress >= 1:
                 self.activity.finished = True
 
