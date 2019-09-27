@@ -6,10 +6,10 @@ import random
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('Refinery') #type: 'Refinery' , 'MIS' or 'Refinery'
+modelOptions = Model_options('Refinery') #type: 'Refinery' , 'MIS' or 'RollerCoaster'
 modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=False
-modelOptions.interface='VAE'
+modelOptions.withScheduleCompression=True
+  modelOptions.interface='VAE'
 model = generateModel(modelOptions)
 
 
@@ -22,7 +22,7 @@ genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss_onB
 start = time.time()
 for i in range(3600):
     bestAction = genePool.generateNewPop()
-    if i%10 == 0:
+    if i%1 == 0:
         print(str(i) + ":  " + str(model.simulate(bestAction)) + ' time:' + str(time.time()-start))
 end = time.time()
 print('time needed: ' + str(end-start))

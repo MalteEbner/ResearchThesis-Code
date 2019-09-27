@@ -12,10 +12,10 @@ from gym import spaces
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
 modelOptions.probabilistic = False
 modelOptions.withScheduleCompression=False
-modelOptions.interface = "VAE"
+#modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
 
@@ -34,11 +34,19 @@ for space in actionSpace.spaces:
             searchSpace[varName] = param
             varNumber+=1
     elif isinstance(space, spaces.Box):
-        for index in range(space.shape[0]):
-            varName = varName = str(varNumber)
-            param = hp.uniform(varName, 0.5, 1)
-            searchSpace[varName] = param
-            varNumber += 1
+        if space.is_bounded():
+            for index,low,high in zip(range(space.shape[0]),space.low,space.high):
+                varName = varName = str(varNumber)
+                param = hp.uniform(varName, low, high)
+                searchSpace[varName] = param
+                varNumber += 1
+        else:
+            for index in range(space.shape[0]):
+                varName = varName = str(varNumber)
+                param = hp.normal(varName, 0, 1)
+                searchSpace[varName] = param
+                varNumber += 1
+
     else:
         raise NotImplementedError
 
@@ -59,7 +67,7 @@ def objectiveFunction(varDict):
 '''
 do the optimization
 '''
-best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=10000)
+best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=3000)
 
 
 bestAction = varDictToAction(best)
