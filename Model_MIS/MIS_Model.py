@@ -1,5 +1,6 @@
 from Model_MIS import MIS_LoadData
 from Model_general import Model_general
+from Model_general import commonFunctions
 import random
 
 
@@ -12,11 +13,9 @@ class Model_MIS(Model_general.Model_general):
 
 
 
-
+        self.projectCost  = 0
         self.baseBudget = int(1.1 * pow(10,6))
         self.baseScoreQuality = 50
-        self.startCost = sum(act.variants[0].base_cost for act in activities)
-
 
 
         super().__init__(activities,defaultLossFunction,self.calcPerformanceFunction,modelOptions,events)
@@ -30,7 +29,6 @@ class Model_MIS(Model_general.Model_general):
         return (self.ScoreCost(),self.ScoreTime(),self.ScoreQuality(),self.ScoreAcceptance,self.ScoreMorale,self.ScoreSecurity)
 
     def resetFunction(self):
-        self.cost = self.startCost
         self.budget = self.baseBudget
         self.quality = 0
         self.delay = 0
@@ -60,11 +58,15 @@ class Model_MIS(Model_general.Model_general):
         return activity.expectedEndpoint
 
 
+    def getCost(self):
+        cost = sum(act.variants[0].cost for act in self.activities)
+        cost += self.projectCost
+        return cost
 
 
     def ScoreCost(self):
         costScale = 30
-        scoreCost = 50 + (self.budget - self.cost)*1.0/costScale
+        scoreCost = 50 + (self.budget - self.getCost())*1.0/costScale
         return scoreCost
 
     def ScoreTime(self):
@@ -187,8 +189,12 @@ class Variant_MIS(Model_general.Variant):
         return [0,0,0,0,0,0] #for calculating Startpoints
 
 
-    def simulateStepFunction(self,model):
+    def simulateStepFunction(self,timeFactor=1):
         self.ensureStartpoint()
+        if timeFactor<1 and self.progress == 0:
+            costIncrease = commonFunctions.scheduleCompressionCostIncrease(timeFactor)
+            self.cost *= costIncrease
+            self.duration *= timeFactor
         self.progress +=1
         relProgress = self.progress*1.0/self.duration
         if relProgress >=1:
