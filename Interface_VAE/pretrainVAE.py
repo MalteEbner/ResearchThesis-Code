@@ -8,9 +8,9 @@ import time
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('MIS') #type: 'Refinery' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=False
+modelOptions = Model_options('RollerCoaster') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+#modelOptions.probabilistic = True
+#modelOptions.withScheduleCompression=True
 model = generateModel(modelOptions)
 projectModel = model.projectModel
 latentDim = 32
@@ -20,7 +20,7 @@ if modelOptions.withScheduleCompression:
 
 
 
-def generatePretrainedVAEModel(projectModel,latentDim,noIters=5 0, noSamplesPerIter = 64):
+def generatePretrainedVAEModel(projectModel,latentDim,noIters=1000, noSamplesPerIter = 8192):
     actionSpace = projectModel.getActionSpace()
     vae = Interface_VAE.VAE.VAE_Model(projectModel,latentDim,False)
 
@@ -29,20 +29,19 @@ def generatePretrainedVAEModel(projectModel,latentDim,noIters=5 0, noSamplesPerI
 
 
     # get threshhold for good actions as mean minus standard deviation averaged with best of many random actions
-    losses = [projectModel.simulate_returnLoss(actionSpace.sample()) for i in range(100)]
+    losses = [projectModel.simulate_returnLoss(actionSpace.sample()) for i in range(1000)]
     meanL = np.mean(losses)
     stdL = np.std(losses)
     bestL = np.min(losses)
-    #threshhold = np.mean([meanL - stdL, bestL])
-    threshhold = meanL-stdL
+    threshhold = np.mean([meanL - stdL, bestL])
+    #threshhold = meanL-stdL
     print('threshhold: ' + str(threshhold))
 
     if True:
         # pre-train with best of following actions
         noSamplesTrainedOnTotal = 0
         for i in range(noIters):
-            actions = [actionSpace.sample() for i in range(noSamplesPerIter)]
-            goodActions = [action for action in actions if projectModel.simulate_returnLoss(action) < threshhold]
+            goodActions = [action for action in (actionSpace.sample() for i in range(noSamplesPerIter)) if projectModel.simulate_returnLoss(action) < threshhold]
             noSamplesTrainedOn = len(goodActions)
             noSamplesTrainedOnTotal += noSamplesTrainedOn
             if noSamplesTrainedOn>0:
