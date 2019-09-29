@@ -18,7 +18,7 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
     policy = ActorCritic_Class.Policy(actionSpace)
 
     '''define baseline as average of 100 random actions'''
-    losses = [model.simulate(actionSpace.sample()) for i in range(100)]
+    losses = [model.simulate(actionSpace.sample())[0] for i in range(100)]
     baseline = np.mean(losses)
     baseStd = np.std(losses)
     if verbose >= 1:
@@ -26,15 +26,15 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
 
     '''hyperparams'''
     batchSize = hyperparams.get('batchSize',128)
-    noSamples = hyperparams.get('noSamples',128000)
+    noSamples = hyperparams.get('noSamples',25600)
     noIterations = int(noSamples/batchSize)
-    verboseNoIterations = max(int(128/batchSize),1)
-    baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.1)
+    verboseNoIterations = max(int(64/batchSize),1)
+    baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.3)
 
-    explorationFactor = hyperparams.get('explorationFactor',0.9)
+    explorationFactor = hyperparams.get('explorationFactor',0.1)
     explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.99)
 
-    learningRate = hyperparams.get('learningRate',0.001)
+    learningRate = hyperparams.get('learningRate',0.1)
     learningRateDecayFactor = hyperparams.get('learningRateDecayFactor',0.98)
 
     '''run actor-critic algorithm'''
@@ -50,15 +50,21 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         baseline += baselineUpdateFactor*(np.mean(losses)-baseline)
         #update policy
         advantages = (baseline-losses)/baseStd
-        #advantages -= explorationFactor #keep exploring
-        policy.update_Binary(actions,advantages)
+        advantages -= explorationFactor #keep exploring
+        if verbose >=2:
+            noPosAdvantages = len([a for a in advantages if a >0])
+            stdOfAdvantages = np.std(advantages)
+            print("%d of %d advantages are positive, std of advantages is %f" % (noPosAdvantages,len(advantages),stdOfAdvantages))
+            if noPosAdvantages==0:
+                break
+        policy.update(actions,advantages)
 
         #update rates
         explorationFactor *= explorationDecayFactor
         learningRate *= learningRateDecayFactor
 
         #print best loss
-        if  verbose >= 2 and (i % verboseNoIterations == 1 or i == noIterations - 1):
+        if  verbose >= 2 and (i % verboseNoIterations == 0 or i == noIterations - 1):
 
 
             bestAction = policy.getBestAction()
