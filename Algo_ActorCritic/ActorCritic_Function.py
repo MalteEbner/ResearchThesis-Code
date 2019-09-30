@@ -87,6 +87,8 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         print("performance of best: " + performanceOfBest)
         print("Finished")
 
+    model.savePerformance('actorCritic',end-start,noSamples.best)
+
     return performanceOfBest[0]
 
 

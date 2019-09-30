@@ -37,4 +37,24 @@ class DefaultInterface():
         print('action: ' + str(action))
         print('performances: ' + str(self.simulateMean(action)))
 
+    def savePerformance(self,algoName, duration,noSamples,bestAction):
+        import csv
+
+        name = 'perf_automatic.csv'
+        from pathlib import Path
+        name = Path('../Interface/') / name
+
+        with open(name, mode='a') as wfile:
+            file_writer = csv.writer(wfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            perf = [str(i) for i in self.simulateMean(bestAction)]
+
+            line = [str(self.projectModel.modelOptions)]
+            line += [str(algoName)]
+            line += perf
+            line += [str(duration),str(noSamples)]
+
+            file_writer.writerow(line)
+            print('Wrote successfully')
+
+
 
