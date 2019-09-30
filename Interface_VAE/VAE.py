@@ -32,6 +32,11 @@ def VAE_sampling(args):
 
 class VAE_Model:
     def __init__(self, projectModel, latentDim,usePretrained=True):
+
+        from tensorflow import GPUOptions, Session, ConfigProto
+        gpu_options = GPUOptions(per_process_gpu_memory_fraction=0.333)
+        sess = Session(config=ConfigProto(gpu_options=gpu_options))
+
         self.latentDim = latentDim
         self.actionSpace = projectModel.getActionSpace()
         if usePretrained:
