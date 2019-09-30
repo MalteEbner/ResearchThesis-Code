@@ -6,8 +6,8 @@ from Interface.Model_options import Model_options
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = False
+modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+#modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=True
 #modelOptions.interface='VAE'
 model = generateModel(modelOptions)
