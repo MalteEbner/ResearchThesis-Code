@@ -8,7 +8,7 @@ class ProjectActionSpace(ActionSpace):
         eventVariantSpace = spaces.MultiDiscrete(eventVariantNumbers)
         spacesTuple = (activityVariantSpace, eventVariantSpace)
         if withScheduleCompression:
-            scheduleCompressionSpace = spaces.Box(0.5, 1, shape=(len(activityVariantNumbers),))
+            scheduleCompressionSpace = spaces.Box(0.75, 1, shape=(len(activityVariantNumbers),))
             spacesTuple += (scheduleCompressionSpace,)
         super().__init__(spacesTuple)
 
