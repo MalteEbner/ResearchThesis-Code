@@ -26,7 +26,7 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
 
     '''hyperparams'''
     batchSize = hyperparams.get('batchSize',128)
-    noSamples = hyperparams.get('noSamples',128000)
+    noSamples = hyperparams.get('noSamples',12)
     noIterations = int(noSamples/batchSize)
     verboseNoIterations = max(int(128/batchSize),1)
     baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.1)
@@ -80,6 +80,8 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         performanceOfBest = str(model.simulateMean(best))
         print("performance of best: " + performanceOfBest)
         print("Finished")
+
+    model.savePerformance('actorCritic',end-start,noSamples.best)
 
     return performanceOfBest[0]
 
