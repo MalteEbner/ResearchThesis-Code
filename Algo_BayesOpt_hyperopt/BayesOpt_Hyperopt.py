@@ -69,7 +69,7 @@ def objectiveFunction(varDict):
 do the optimization
 '''
 start = time.time()
-noSamples = 7
+noSamples = 7000
 best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=noSamples)
 end = time.time()
 print("needed %d seconds" %(end-start))
