@@ -14,7 +14,7 @@ import GPyOpt
 
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = False
+#modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=True
 #modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
@@ -56,15 +56,17 @@ def objective_function(input):
     print('loss: ' + str(loss))
     return loss
 
+initialNoSamples = 500
 myBopt = GPyOpt.methods.BayesianOptimization(f=objective_function,                     # Objective function
                                              domain=mixed_domain,          # Box-constraints of the problem
-                                             initial_design_numdata = 500,   # Number data initial design
+                                             initial_design_numdata = initialNoSamples,   # Number data initial design
                                              acquisition_type='EI',        # Expected Improvement
                                              exact_feval = True,
                                              verbosity=True)           # True evaluations, no sample noise
 print('starting optimization')
 start = time.time()
-myBopt.run_optimization(max_iter=200,eps=-1,verbosity=True)
+noIters=1
+myBopt.run_optimization(max_iter=noIters,eps=-1,verbosity=True)
 end = time.time()
 print('time needed: ' + str(end-start))
 
@@ -75,6 +77,7 @@ bestX = myBopt.x_opt
 
 action.saveEverythingCombined(bestX)
 model.printAllAboutAction(action)
+model.savePerformance('GPyOpt',end-start,initialNoSamples+noIters,action)
 
 
 

@@ -21,9 +21,9 @@ warnings.filterwarnings(action='ignore',category=DataConversionWarning)
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('MIS ') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=False
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+#modelOptions.probabilistic = True
+modelOptions.withScheduleCompression=True
 #modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
@@ -106,7 +106,8 @@ Y_init = emukit_friendly_objective_function(X_init)
 rf_model = RandomForest(X_init, Y_init)
 loop = BayesianOptimizationLoop(space,rf_model)
 
-loop.run_loop(emukit_friendly_objective_function, 1500)
+noSamples = 1500
+loop.run_loop(emukit_friendly_objective_function, noSamples)
 end = time.time()
 print('time needed: ' + str(end-start))
 
@@ -115,5 +116,5 @@ bestIteration = np.argmin(loop.loop_state.Y)
 bestPointEncoded = loop.loop_state.X[bestIteration]
 bestAction = encodingToAction(bestPointEncoded,encodingList)
 model.printAllAboutAction(bestAction)
-
+model.savePerformance('emukit_opt',end-start,noSamples+initial_points_count,bestAction)
 print("end of optimization")
