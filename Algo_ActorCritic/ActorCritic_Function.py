@@ -34,7 +34,7 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
     explorationFactor = hyperparams.get('explorationFactor',0.1)
     explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.99)
 
-    learningRate = hyperparams.get('learningRate',0.1)
+    learningRate = hyperparams.get('learningRate',0.8)
     learningRateDecayFactor = hyperparams.get('learningRateDecayFactor',0.98)
 
     '''run actor-critic algorithm'''
@@ -56,7 +56,7 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
             stdOfAdvantages = np.std(advantages)
             print("%d of %d advantages are positive, std of advantages is %f" % (noPosAdvantages,len(advantages),stdOfAdvantages))
             if noPosAdvantages==0:
-                break
+                explorationFactor*=0.9
         policy.update(actions,advantages)
 
         #update rates
