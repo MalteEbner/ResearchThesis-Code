@@ -7,15 +7,15 @@ import random
 
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'Refinery' , 'MIS' or 'RollerCoaster'
-modelOptions.probabilistic = False
+#modelOptions.probabilistic = True
 modelOptions.withScheduleCompression=True
-  modelOptions.interface='VAE'
+#modelOptions.interface='VAE'
 model = generateModel(modelOptions)
 
 
 '''define start Population of genetic algorithm'''
 actionSpace = model.getActionSpace()
-genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss_onBatch,100)
+genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss_onBatch,500)
 
 
 '''run genetic algorithm'''
