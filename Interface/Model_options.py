@@ -28,7 +28,7 @@ class Model_options():
         if self.withEvents:
             name += '_withEvents'
         if self.withScheduleCompression:
-            name += '_withScheduleCompression'
+            name += '_withScheduleCompression075'
         name+= '_'+str(latentDim)
         name += '.h5'
         from pathlib import Path
