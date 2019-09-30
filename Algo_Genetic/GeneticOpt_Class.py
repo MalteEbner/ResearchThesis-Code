@@ -65,7 +65,7 @@ class GeneticOpt():
 
         #b)
         for elite in elitePop:
-            mutated_elite = elite.mutate(self.defaultMutateProb/5)
+            mutated_elite = elite.mutate(self.defaultMutateProb)
             childPop.append(mutated_elite)
 
         #c)
