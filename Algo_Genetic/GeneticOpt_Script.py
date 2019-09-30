@@ -8,19 +8,21 @@ import random
 '''generate Model with its options'''
 modelOptions = Model_options('Refinery') #type: 'Refinery' , 'MIS' or 'RollerCoaster'
 modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=True
-  modelOptions.interface='VAE'
+modelOptions.withScheduleCompression=False
+#modelOptions.interface='VAE'
 model = generateModel(modelOptions)
 
 
 '''define start Population of genetic algorithm'''
 actionSpace = model.getActionSpace()
-genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss_onBatch,100)
+popSize = 100
+genePool = GeneticOpt_Class.GeneticOpt(actionSpace,model.simulate_returnLoss_onBatch,popSize)
 
 
 '''run genetic algorithm'''
 start = time.time()
-for i in range(3600):
+noIters = 3
+for i in range(noIters):
     bestAction = genePool.generateNewPop()
     if i%1 == 0:
         print(str(i) + ":  " + str(model.simulate(bestAction)) + ' time:' + str(time.time()-start))
@@ -32,6 +34,10 @@ print('time needed: ' + str(end-start))
 best = genePool.getBestPop()
 print("best chromosome: " + str(best))
 print("performance of best: " + str(model.simulateMean(best)))
+
+noSamples = noIters * popSize
+model.savePerformance('actorCritic',end-start,noSamples,best)
+
 print("Finished")
 
 
