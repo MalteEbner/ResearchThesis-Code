@@ -56,7 +56,7 @@ class GeneticOpt():
         '''
         Child Population consists of
         a) elitePop, unchanged
-        b) elitePop, mutated
+        b) elitePop, mutated 
         c) totalParentPop, crossed & mutated
         '''
 
@@ -65,7 +65,7 @@ class GeneticOpt():
 
         #b)
         for elite in elitePop:
-            mutated_elite = elite.mutate(self.defaultMutateProb)
+            mutated_elite = elite.mutate(self.defaultMutateProb/5)
             childPop.append(mutated_elite)
 
         #c)
