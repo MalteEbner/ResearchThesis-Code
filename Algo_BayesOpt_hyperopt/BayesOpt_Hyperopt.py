@@ -9,12 +9,13 @@ from Model_TopSim_RollerCoaster import RollerCoaster_Model
 from Model_MIS import MIS_Model
 from Model_general import commonFunctions
 from gym import spaces
+import time
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('MIS') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
-modelOptions.probabilistic = False
-modelOptions.withScheduleCompression=False
+modelOptions = Model_options('Refinery') #type: 'RollerCoaster' , 'MIS' or 'Refinery'
+#modelOptions.probabilistic = True
+modelOptions.withScheduleCompression=True
 #modelOptions.interface = "VAE"
 model = generateModel(modelOptions)
 
@@ -67,8 +68,13 @@ def objectiveFunction(varDict):
 '''
 do the optimization
 '''
-best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=3000)
+start = time.time()
+noSamples = 7
+best = fmin(objectiveFunction,searchSpace,algo=tpe.suggest,max_evals=noSamples)
+end = time.time()
+print("needed %d seconds" %(end-start))
 
 
 bestAction = varDictToAction(best)
 model.printAllAboutAction(bestAction)
+model.savePerformance('hyperopt',end-start,noSamples,bestAction)
