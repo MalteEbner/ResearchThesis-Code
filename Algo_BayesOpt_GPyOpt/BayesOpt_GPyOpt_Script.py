@@ -65,7 +65,7 @@ myBopt = GPyOpt.methods.BayesianOptimization(f=objective_function,              
                                              verbosity=True)           # True evaluations, no sample noise
 print('starting optimization')
 start = time.time()
-noIters=1
+noIters=200
 myBopt.run_optimization(max_iter=noIters,eps=-1,verbosity=True)
 end = time.time()
 print('time needed: ' + str(end-start))
