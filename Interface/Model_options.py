@@ -27,6 +27,8 @@ class Model_options():
         name += str(self.projectType)
         if self.withEvents:
             name += '_withEvents'
+        if self.probabilistic:
+            name += '_probabilistic'
         if self.withScheduleCompression:
             name += '_withScheduleCompression075'
         name+= '_'+str(latentDim)
