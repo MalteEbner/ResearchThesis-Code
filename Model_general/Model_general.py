@@ -76,20 +76,8 @@ class Model_general:
         loss = self.simulateMean(action,lossFunction,randomTestsToMean)[0]
         return loss
 
-    def getGoodStartpoint(self, actionSpace,lossFunction=[]):
-        if lossFunction == []:
-            lossFunction = self.defaultLossFunction
-        startIndizes_activities = []
-        for activity in self.activities:
-            variantLosses = [lossFunction(var.simulate(self)) for var in activity.variants]
-            bestVariant = np.argmin(
-                variantLosses)  # get the best Variant w.r.t to the loss assuming it is a single-activity-project
-            activity.variants[bestVariant].simulate(self)  # assume all predecessors(and their quality) are optimal
-            startIndizes_activities.append(bestVariant)
 
-        action = ActionSpace.Action(actionSpace)
-        action.saveDirectly(startIndizes_activities,[0 for i in self.events])
-        return action
+
 
 
     def getActivityLosses(self, lossFunction=[]):
@@ -113,6 +101,18 @@ class Model_general:
             variantLosses = [lossFunction(var.simulate()) for var in activity.variants]
             bestLoss = np.argmin(variantLosses)
             bestActivities.append(bestLoss)
+        bestEvents = [0 for i in self.orderedEventIDs()]
+        valuesList = [bestActivities,bestEvents]
+        if self.modelOptions.withScheduleCompression:
+            scheduleCompressionFactors = [1 for i in self.activities]
+            valuesList.append(scheduleCompressionFactors)
+        action.saveValuesList(valuesList)
+        self.resetFunction()
+        return action
+
+    def getZeroAction(self):
+        action = ProjectActionSpace.ProjectAction(self.getActionSpace())
+        bestActivities = [0 for i in self.activities]
         bestEvents = [0 for i in self.orderedEventIDs()]
         valuesList = [bestActivities,bestEvents]
         if self.modelOptions.withScheduleCompression:
