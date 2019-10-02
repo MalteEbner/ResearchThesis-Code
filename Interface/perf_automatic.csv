@@ -1,0 +1,23 @@
+Refinery_withScheduleCompression_Default,actorCritic,756566415.0,285.0,2654619.0,1.4,2726.313108921051,51200RollerCoaster_withScheduleCompression_Default,hyperopt,-2734.69,58.52,10335.31,16.0,23.0,2540.849047899246,4000Refinery_withScheduleCompression_VAE,GPyOpt,1119161197.0,371.0,3016607.0,1.23,1600.2937257289886,700
+RollerCoaster_withScheduleCompression_Default,geneticOpt,-6288.33,59.88,9781.67,29.0,42.0,2378.943571805954,900000
+Refinery_withScheduleCompression_VAE,emukit_opt,1409331020.0,430.0,3277514.0,1.24,3802.6738572120667,3000
+RollerCoaster_withScheduleCompression_Default,GPyOpt,-3024.68,62.6,10345.32,19.0,32.0,1776.954372882843,700
+Refinery_withScheduleCompression_VAE,hyperopt,1042473215.0,365.0,2856091.0,1.3,1766.227010011673,4000
+Refinery_withScheduleCompression_VAE,geneticOpt,794785876.0,313.0,2539252.0,1.39,2207.2496910095215,900000
+Refinery_withScheduleCompression_VAE,actorCritic,1456150169.0,421.0,3458789.0,1.12,227.75696516036987,51200
+Refinery_withScheduleCompression_VAE,actorCritic,1439269763.0,431.0,3339373.0,1.15,2203.7709929943085,512000
+RollerCoaster_withScheduleCompression_Default,emukit_opt,-1283.64,61.15,10636.36,16.0,18.0,5227.108669757843,3000
+RollerCoaster_withScheduleCompression_VAE,hyperopt,-2582.06,65.16,9337.94,20.0,25.0,2118.935884952545,4000
+RollerCoaster_withScheduleCompression_Default,actorCritic,-5929.52,62.95,10240.48,34.0,45.0,2995.4130761623383,25600
+RollerCoaster_withScheduleCompression_VAE,GPyOpt,-347.96,70.0,9672.04,20.0,17.0,2666.8975672721863,700
+RollerCoaster_withScheduleCompression_VAE,actorCritic,139.73,68.7,9559.73,10.0,16.0,111.76413631439209,25600
+RollerCoaster_withScheduleCompression_VAE,actorCritic,690.74,68.32,9540.74,7.0,13.0,1085.116337299347,256000
+RollerCoaster_withScheduleCompression_VAE,emukit_opt,-759.18,66.94,9660.82,18.0,14.0,4723.304618358612,3000
+RollerCoaster_withScheduleCompression_VAE,geneticOpt,-4869.48,60.96,9700.52,26.0,32.0,2111.1842591762543,900000
+RollerCoaster_Default,hyperopt,-1097.22,65.59,9712.78,15.0,19.0,985.653308391571,4000
+RollerCoaster_Default,GPyOpt,-2812.33,64.88,9517.67,19.0,28.0,1788.6949300765991,700
+RollerCoaster_Default,emukit_opt,-163.29,67.03,9691.71,18.0,9.0,3033.9420688152313,3000
+RollerCoaster_withScheduleCompression_VAE,actorCritic,-255.88,64.86,9874.12,9.0,15.0,1217.3287944793701,256000
+RollerCoaster_Default,geneticOpt,-4184.36,68.41,9325.64,29.0,38.0,1618.4920616149902,900000
+RollerCoaster_VAE,hyperopt,-2739.48,65.31,9790.52,18.0,32.0,1110.9781818389893,4000
+RollerCoaster_VAE,emukit_opt,-2764.36,64.34,9845.64,19.0,29.0,1361.9381000995636,2500

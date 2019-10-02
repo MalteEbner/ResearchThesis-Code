@@ -7,7 +7,7 @@ import numpy as np
 
 
 class VAE_Interface(DefaultInterface.DefaultInterface):
-    def __init__(self, projectModel,latentDim=64, trainingKind='start'):
+    def __init__(self, projectModel,latentDim=32, trainingKind='start'):
         self.projectModel = projectModel
         self.actionSpace = ActionSpace.ActionSpace([spaces.Box(-np.inf,np.inf,shape=(latentDim,)),])
         usePretrained = trainingKind=='start' or trainingKind=='both'
