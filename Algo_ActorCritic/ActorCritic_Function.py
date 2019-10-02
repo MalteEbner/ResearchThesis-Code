@@ -25,16 +25,15 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         print('baseline:' + str(baseline) + " baseline_std: " + str(baseStd))
 
     '''hyperparams'''
-    batchSize = hyperparams.get('batchSize',128)
+    batchSize = hyperparams.get('batchSize',512)
     noSamples = hyperparams.get('noSamples',25600)
     noIterations = int(noSamples/batchSize)
     verboseNoIterations = max(int(64/batchSize),1)
     baselineUpdateFactor = hyperparams.get('baselineUpdateFactor',0.3)
 
     explorationFactor = hyperparams.get('explorationFactor',0.1)
-    explorationDecayFactor = hyperparams.get('explorationDecayFactor',0.99)
 
-    learningRate = hyperparams.get('learningRate',0.8)
+    learningRate = hyperparams.get('learningRate',100)
     learningRateDecayFactor = hyperparams.get('learningRateDecayFactor',0.98)
 
     '''run actor-critic algorithm'''
@@ -53,14 +52,16 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         advantages -= explorationFactor #keep exploring
         if verbose >=2:
             noPosAdvantages = len([a for a in advantages if a >0])
+            relNoPosAdvantages = noPosAdvantages*1.0/len(advantages)
             stdOfAdvantages = np.std(advantages)
             print("%d of %d advantages are positive, std of advantages is %f" % (noPosAdvantages,len(advantages),stdOfAdvantages))
-            if noPosAdvantages==0:
+            if relNoPosAdvantages<0.1:
                 explorationFactor*=0.9
-        policy.update(actions,advantages)
+            elif relNoPosAdvantages >0.7:
+                explorationFactor*=1.1
+        policy.update(actions,advantages*learningRate)
 
         #update rates
-        explorationFactor *= explorationDecayFactor
         learningRate *= learningRateDecayFactor
 
         #print best loss

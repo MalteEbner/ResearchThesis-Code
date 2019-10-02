@@ -32,6 +32,10 @@ class Policy:
 
 
     def defineModel(self):
+        from tensorflow import GPUOptions, Session, ConfigProto
+        gpu_options = GPUOptions(per_process_gpu_memory_fraction=0.25)
+        sess = Session(config=ConfigProto(gpu_options=gpu_options))
+
         verbose = False
         '''Model definition of neural network'''
         #input layer
