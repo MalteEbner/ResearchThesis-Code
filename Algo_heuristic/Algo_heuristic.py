@@ -5,8 +5,11 @@ import time
 
 
 '''generate Model with its options'''
-modelOptions = Model_options('RollerCoaster') #type: 'Refinery' , 'MIS' or 'RollerCoaster'
+modelOptions = Model_options('MIS') #type: 'Refinery' , 'MIS' or 'RollerCoaster'
 model = generateModel(modelOptions)
+
+print("Model with %e options created" %model.projectModel.noOptions())
+
 
 heuristicAction = model.projectModel.getHeuristicBestAction()
 zeroAction = model.projectModel.getZeroAction()

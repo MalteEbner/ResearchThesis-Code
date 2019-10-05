@@ -177,6 +177,20 @@ class Model_general:
             lines += "\n" + str(activity)
         return lines
 
+    def noOptions(self):
+        variantNumsActivities = [len(act.variants) for act in self.activities]
+        min_ = min(variantNumsActivities)
+        max_ = max(variantNumsActivities)
+        len_act=len(variantNumsActivities)
+        variantNumsEvents = [len(self.events[eventID].eventOptions) for eventID in self.orderedEventIDs()]
+        len_events = len(variantNumsEvents)
+        min_e = min(variantNumsEvents)
+        max_e = max(variantNumsEvents)
+        variantNums = [float(i) for i in variantNumsActivities+variantNumsEvents if i>0]
+        noOptions = np.product(variantNums)
+        return noOptions
+
+
 class Activity():
     def __init__(self, predecessors, variants, activityID):
         self.predecessors = predecessors
