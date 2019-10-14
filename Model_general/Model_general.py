@@ -184,8 +184,9 @@ class Model_general:
         len_act=len(variantNumsActivities)
         variantNumsEvents = [len(self.events[eventID].eventOptions) for eventID in self.orderedEventIDs()]
         len_events = len(variantNumsEvents)
-        min_e = min(variantNumsEvents)
-        max_e = max(variantNumsEvents)
+        if len_events > 0:
+            min_e = min(variantNumsEvents)
+            max_e = max(variantNumsEvents)
         variantNums = [float(i) for i in variantNumsActivities+variantNumsEvents if i>0]
         noOptions = np.product(variantNums)
         return noOptions
