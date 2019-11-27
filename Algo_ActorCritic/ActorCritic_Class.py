@@ -5,7 +5,7 @@ from tensorflow.math import minimum as tf_minimum
 from Interface import ActionSpace
 import numpy as np
 from tensorflow.keras import optimizers
-from keras.initializers import Constant
+from tensorflow.keras.initializers import Constant
 from tensorflow.keras.utils import plot_model
 from Algo_ActorCritic import ActorCritic_general
 from gym import spaces
@@ -32,9 +32,11 @@ class Policy:
 
 
     def defineModel(self):
-        from tensorflow import GPUOptions, Session, ConfigProto
-        gpu_options = GPUOptions(per_process_gpu_memory_fraction=0.25)
-        sess = Session(config=ConfigProto(gpu_options=gpu_options))
+        from tensorflow import config
+        gpus = config.experimental.list_physical_devices('GPU')
+        if gpus:
+            gpu0 = gpus[0]
+            config.experimental.set_memory_growth(gpu0, [config.experimental.VirtualDeviceConfiguration(memory_limit=1300)])
 
         verbose = False
         '''Model definition of neural network'''
