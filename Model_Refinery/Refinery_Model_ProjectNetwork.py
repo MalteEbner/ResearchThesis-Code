@@ -8,7 +8,7 @@ def loadActivityData(allSuppliers, filename):
     sheet = pd.read_excel(filename, sheet_name='Simulation')
 
     activities = []
-    for activityIndex in range(5,34):
+    for activityIndex in range(5,32):
         activityNumber = sheet[1][activityIndex]
         if activityNumber>0:
             name = sheet[2][activityIndex].strip()

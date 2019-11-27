@@ -6,7 +6,7 @@ import random
 
 class Model_MIS(Model_general.Model_general):
     def __init__(self,modelOptions):
-        filename = '../Model_MIS/MIS_PM.xlsx'
+        filename = '../Model_MIS/MIS_PM - dummyData.xlsx'
         activities, events = MIS_LoadData.loadData(filename)
         defaultLossFunction = lambda tupl: -1.*sum(tupl)/len(tupl)
         #defaultLossFunction = lambda tupl: 100-1* tupl[2]
