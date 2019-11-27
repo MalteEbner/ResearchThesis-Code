@@ -6,7 +6,7 @@ from Model_general import commonFunctions
 
 class Model_Refinery(Model_general.Model_general):
     def __init__(self,modelOptions):
-        filename = '../Model_Refinery/SimGame translated - Andre Heleno.xlsx'
+        filename = '../Model_Refinery/SimGame translated - Andre Heleno - dummyData.xlsx'
         self.suppliers = Refinery_Model_suppliers.loadSupplierData(filename)
         activities = Refinery_Model_ProjectNetwork.loadActivityData(self.suppliers,filename)
         defaultLossFunction = lambda tupl: tupl[0]*tupl[1]
