@@ -45,7 +45,7 @@ def actorCritic_RunAlgo(model, verbose = 2, hyperparams=0):
         actions = [policy.sampleAction() for i in range(batchSize)]
         #appy action on model, sample 'reward' (loss)
         losses = model.simulate_returnLoss_onBatch(actions)
-        #update baseline
+        #update baseline/VValue
         baseline += baselineUpdateFactor*(np.mean(losses)-baseline)
         #update policy
         advantages = (baseline-losses)/baseStd
