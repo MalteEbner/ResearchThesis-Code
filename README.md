@@ -1,6 +1,7 @@
 # Forschungsarbeit-Code
 This research project was part of my studies as M.Sc. in Electrical an Information Engineering at the University of Stuttgart.
-thesis: https://github.com/MalteEbner/ResearchThesis-Code/blob/master/ResearchThesis%20Malte%20Ebner.pdf
+
+Thesis: https://github.com/MalteEbner/ResearchThesis-Code/blob/master/ResearchThesis%20Malte%20Ebner.pdf
 
 Abstract of the reasearch project:
 
