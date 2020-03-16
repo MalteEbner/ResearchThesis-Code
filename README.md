@@ -1,6 +1,9 @@
 # Forschungsarbeit-Code
 This research project was part of my studies as M.Sc. in Electrical an Information Engineering at the University of Stuttgart.
 
+Thesis: https://github.com/MalteEbner/ResearchThesis-Code/blob/master/ResearchThesis%20Malte%20Ebner.pdf
+
+
 Abstract of the reasearch project:
 
 Choosing the activity variants of a project such that the total project duration and cost is minimized is a problem well known in literature as the discrete time-cost trade-off problem (DTCTP). This problem is extended and generalized by adding stochastic events and activity durations and allowing a continuous-valued schedule compression of activities, making it a mixed (categorical and continuous), probabilistic and nonlinear optimization problem.
